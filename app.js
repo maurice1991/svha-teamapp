@@ -40,7 +40,7 @@ const SEED_LAUNDRY=[
   ['m1','Norjan Daoud'],['m2','Lexi van de Ven'],['m3','Vajèn Velthuizen'],['m4','Milou Riedijk'],['m5','Willemijn Doelman']
 ].map((x,i)=>({id:`w${i+1}`,event_id:x[0],player_id:playerIdByName(x[1]),status:'scheduled'}));
 
-const state={players:[],events:[],driving:[],laundry:[],absences:[],user:null,profile:null,parentPlayerIds:[],online:false,mode:DB_ENABLED?'database':'demo'};
+const state={players:[],events:[],driving:[],laundry:[],absences:[],user:null,profile:null,parentPlayerIds:[],adminUsers:[],online:false,mode:DB_ENABLED?'database':'demo'};
 let installPrompt=null;
 
 const fmtDate=new Intl.DateTimeFormat('nl-NL',{weekday:'long',day:'numeric',month:'long'});
@@ -118,7 +118,7 @@ async function loadRemote(){
   }
 }
 
-function renderAll(){renderSync();renderDashboard();renderMatches();renderTraining();renderDriving();renderLaundry();renderAbsenceForm();renderAbsences();renderTeam();renderAccount()}
+function renderAll(){renderSync();renderDashboard();renderMatches();renderTraining();renderDriving();renderLaundry();renderAbsenceForm();renderAbsences();renderTeam();renderAccount();renderCoachVisibility();if(isCoach())renderAdminData()}
 function renderSync(){const b=$('#sync-badge'),t=$('#sync-text');b.classList.remove('online','offline','demo');if(state.mode==='demo'){b.classList.add('demo');t.textContent='Demo'}else if(state.online){b.classList.add('online');t.textContent='Online'}else{b.classList.add('offline');t.textContent='Offline'}}
 function renderDashboard(){
   const next=upcomingEvents()[0];if(next){$('#next-icon').textContent=next.event_type==='match'?'⚽':'🏃';$('#next-title').textContent=next.event_type==='match'?`${isHome(next)?'Thuis':'Uit'} tegen ${opponent(next)}`:'Training';$('#next-date').textContent=`${dateLabel(next.starts_at)} · ${eventTime(next)}`;$('#next-meta').textContent=next.event_type==='match'?(next.location_name||'Wedstrijd'): `${next.location_name||'Sportpark SVHA'} · tot ${eventEnd(next)}`;$('#next-action').dataset.jump=next.event_type==='match'?'matches':'schedule';}
@@ -166,6 +166,60 @@ async function submitAbsence(ev){
 }
 async function deleteAbsence(id){const row=state.absences.find(a=>a.id===id);if(!row||!canManagePlayer(row.player_id))return;if(state.mode==='demo'){state.absences=state.absences.filter(a=>a.id!==id);setLocal(STORAGE.absences,state.absences);renderAbsences();renderDriving();renderLaundry();toast('Afmelding verwijderd');return}const {error}=await sb.from('absences').delete().eq('id',id);if(error){toast('Verwijderen mislukt');return}state.absences=state.absences.filter(a=>a.id!==id);saveRemoteCache();renderAbsences();renderDriving();renderLaundry();toast('Afmelding verwijderd')}
 function renderTeam(){$('#team-grid').innerHTML=state.players.map((p,i)=>`<article class="card player-card"><span class="player-avatar">${initials(p.name)}</span><div><strong>${esc(p.name)}</strong><small>Speelster · #${String(p.shirt_number||i+1).padStart(2,'0')}</small></div></article>`).join('')}
+
+
+function renderCoachVisibility(){
+  const btn=$('#admin-top');if(!btn)return;btn.classList.toggle('hidden',!isCoach());
+  if(isCoach()){$('#parent-player').innerHTML=playerOptions();$('#task-player').innerHTML=playerOptions();renderAdminMatchOptions();}
+}
+function playerOptions(selected=''){return '<option value="">Kies een speelster…</option>'+state.players.map(p=>`<option value="${p.id}" ${p.id===selected?'selected':''}>${esc(p.name)}</option>`).join('')}
+function matchOptions(selected=''){return '<option value="">Kies een wedstrijd…</option>'+matches().map(e=>`<option value="${e.id}" ${e.id===selected?'selected':''}>${fmtShort.format(dt(e.starts_at))} · ${eventTime(e)} — ${isHome(e)?'Thuis':'Uit'} tegen ${esc(opponent(e))}</option>`).join('')}
+function renderAdminMatchOptions(){if($('#task-event'))$('#task-event').innerHTML=matchOptions()}
+function setAdminTab(tab){$$('.admin-segment').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));$$('.admin-pane').forEach(p=>p.classList.toggle('active',p.id===`admin-${tab}`))}
+async function adminInvoke(body){
+  const {data,error}=await sb.functions.invoke('team-admin-users',{body});
+  if(error){console.error(error);throw new Error(error.message||'Beheeractie mislukt')}
+  if(data?.error)throw new Error(data.error);return data;
+}
+async function loadAdminUsers(){
+  if(!isCoach())return;const list=$('#admin-parent-list');if(list)list.innerHTML='<div class="empty-state">Accounts laden…</div>';
+  try{const data=await adminInvoke({action:'list_users'});state.adminUsers=data.users||[];renderAdminParents()}catch(err){console.error(err);if(list)list.innerHTML=`<div class="empty-state">${esc(err.message||'Accounts konden niet worden geladen')}</div>`}
+}
+function renderAdminData(){if(!isCoach())return;renderAdminParents();renderAdminMatches();renderAdminTasks();renderAdminMatchOptions()}
+function renderAdminParents(){
+  const el=$('#admin-parent-list');if(!el||!isCoach())return;const parents=state.adminUsers.filter(u=>u.role!=='coach');$('#parent-count').textContent=parents.length;
+  if(!state.adminUsers.length){el.innerHTML='<div class="empty-state">Klik op Vernieuwen om accounts te laden.</div>';return}
+  el.innerHTML=state.adminUsers.map(u=>{const names=(u.player_ids||[]).map(id=>player(id)?.name).filter(Boolean);return `<div class="admin-row"><div class="admin-row-main"><strong>${esc(u.display_name||u.email||'Account')}</strong><small>${esc(u.email||'')}</small><span class="admin-chip ${u.role==='coach'?'coach':''}">${u.role==='coach'?'Trainer / beheerder':names.length?esc(names.join(', ')):'Nog niet gekoppeld'}</span></div><div class="admin-row-actions">${u.role!=='coach'?`<button class="small-action" data-admin-link="${u.id}">Koppelen</button><button class="small-action" data-admin-password="${u.id}">Wachtwoord</button><button class="danger-button" data-admin-delete="${u.id}">Verwijder</button>`:''}</div></div>`}).join('');
+  $$('[data-admin-link]').forEach(b=>b.addEventListener('click',()=>editParentLink(b.dataset.adminLink)));$$('[data-admin-password]').forEach(b=>b.addEventListener('click',()=>resetParentPassword(b.dataset.adminPassword)));$$('[data-admin-delete]').forEach(b=>b.addEventListener('click',()=>deleteParentAccount(b.dataset.adminDelete)));
+}
+async function createParentAccount(ev){
+  ev.preventDefault();const btn=ev.currentTarget.querySelector('button[type="submit"]');const payload={action:'create_parent',email:$('#parent-email').value.trim(),password:$('#parent-password').value,display_name:$('#parent-name').value.trim(),player_ids:[$('#parent-player').value].filter(Boolean)};
+  btn.disabled=true;btn.textContent='Aanmaken…';try{await adminInvoke(payload);toast('Ouderaccount aangemaakt ✓');ev.currentTarget.reset();$('#parent-player').innerHTML=playerOptions();await loadAdminUsers()}catch(err){toast(err.message||'Aanmaken mislukt')}finally{btn.disabled=false;btn.textContent='Account aanmaken'}
+}
+function generatePassword(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';let out='';crypto.getRandomValues(new Uint32Array(14)).forEach(n=>out+=chars[n%chars.length]);$('#parent-password').value=out}
+async function editParentLink(userId){const u=state.adminUsers.find(x=>x.id===userId);if(!u)return;const current=u.player_ids?.[0]||'';const choices=state.players.map((p,i)=>`${i+1}. ${p.name}`).join('\n');const answer=prompt(`Kies speelster voor ${u.email}:\n\n${choices}\n\nTyp het nummer:`,String(Math.max(1,state.players.findIndex(p=>p.id===current)+1)));if(answer===null)return;const idx=Number(answer)-1;if(!state.players[idx])return toast('Ongeldige keuze');try{await adminInvoke({action:'set_parent_links',user_id:userId,player_ids:[state.players[idx].id]});toast('Koppeling opgeslagen ✓');await loadAdminUsers()}catch(err){toast(err.message||'Koppelen mislukt')}}
+async function resetParentPassword(userId){const u=state.adminUsers.find(x=>x.id===userId);const pw=prompt(`Nieuw tijdelijk wachtwoord voor ${u?.email||'ouder'} (minimaal 8 tekens):`);if(pw===null)return;if(pw.length<8)return toast('Minimaal 8 tekens');try{await adminInvoke({action:'reset_password',user_id:userId,password:pw});toast('Wachtwoord aangepast ✓')}catch(err){toast(err.message||'Aanpassen mislukt')}}
+async function deleteParentAccount(userId){const u=state.adminUsers.find(x=>x.id===userId);if(!confirm(`Account ${u?.email||''} echt verwijderen?`))return;try{await adminInvoke({action:'delete_parent',user_id:userId});toast('Account verwijderd');await loadAdminUsers()}catch(err){toast(err.message||'Verwijderen mislukt')}}
+function renderAdminMatches(){
+  const el=$('#admin-match-list');if(!el||!isCoach())return;el.innerHTML=matches().map(e=>`<div class="admin-row"><div class="admin-row-main"><strong>${fmtShort.format(dt(e.starts_at))} · ${eventTime(e)} — ${isHome(e)?'Thuis':'Uit'} tegen ${esc(opponent(e))}</strong><small>${esc(e.location_name||'Locatie nog niet ingevuld')}${e.address?` · ${esc(e.address)}`:''}</small></div><div class="admin-row-actions"><button class="small-action" data-edit-match="${e.id}">Wijzig</button><button class="danger-button" data-delete-match="${e.id}">Verwijder</button></div></div>`).join('')||'<div class="empty-state">Nog geen wedstrijden.</div>';
+  $$('[data-edit-match]').forEach(b=>b.addEventListener('click',()=>editMatch(b.dataset.editMatch)));$$('[data-delete-match]').forEach(b=>b.addEventListener('click',()=>deleteMatch(b.dataset.deleteMatch)))
+}
+
+function localDateParts(value){const d=dt(value);return {date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,time:`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}}
+function resetMatchForm(){const f=$('#match-form');if(!f)return;f.reset();$('#match-id').value='';$('#match-save').textContent='Wedstrijd opslaan';$('#match-cancel').classList.add('hidden')}
+function editMatch(id){const e=event(id);if(!e)return;const parts=localDateParts(e.starts_at);$('#match-id').value=e.id;$('#match-date').value=parts.date;$('#match-time').value=parts.time;$('#match-home-away').value=isHome(e)?'home':'away';$('#match-opponent').value=opponent(e)||'';$('#match-round').value=e.round||'';$('#match-location').value=e.location_name||'';$('#match-address').value=e.address||'';$('#match-save').textContent='Wijzigingen opslaan';$('#match-cancel').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+async function saveMatch(ev){
+  ev.preventDefault();const id=$('#match-id').value,date=$('#match-date').value,time=$('#match-time').value,home=$('#match-home-away').value==='home',opp=$('#match-opponent').value.trim();if(!date||!time||!opp)return;
+  const start=new Date(`${date}T${time}:00`),end=new Date(start.getTime()+90*60000);const row={event_type:'match',starts_at:start.toISOString(),ends_at:end.toISOString(),round:Number($('#match-round').value)||null,home_team:home?TEAM_NAME:opp,away_team:home?opp:TEAM_NAME,location_name:$('#match-location').value.trim()||null,address:$('#match-address').value.trim()||null};
+  const btn=$('#match-save');btn.disabled=true;try{let res;if(id)res=await sb.from('events').update(row).eq('id',id).select().single();else res=await sb.from('events').insert(row).select().single();if(res.error)throw res.error;toast(id?'Wedstrijd bijgewerkt ✓':'Wedstrijd toegevoegd ✓');resetMatchForm();await loadRemote();setAdminTab('matches')}catch(err){console.error(err);toast('Wedstrijd opslaan mislukt')}finally{btn.disabled=false}
+}
+async function deleteMatch(id){const e=event(id);if(!e||!confirm(`${dateLabel(e.starts_at)} tegen ${opponent(e)} verwijderen?`))return;const {error}=await sb.from('events').delete().eq('id',id);if(error)return toast('Verwijderen mislukt');toast('Wedstrijd verwijderd');await loadRemote();setAdminTab('matches')}
+function renderAdminTasks(){
+  const el=$('#admin-task-list');if(!el||!isCoach())return;const rows=[...state.driving.map(a=>({...a,type:'driving'})),...state.laundry.map(a=>({...a,type:'laundry'}))].sort((a,b)=>dt(event(a.event_id)?.starts_at||0)-dt(event(b.event_id)?.starts_at||0));el.innerHTML=rows.map(a=>{const e=event(a.event_id),p=player(a.player_id);if(!e||!p)return'';return `<div class="admin-row"><div class="admin-row-main"><strong>${a.type==='driving'?'🚗 Rijden':'🧺 Wastas'} · ${esc(p.name)}</strong><small>${fmtShort.format(dt(e.starts_at))} · ${eventTime(e)} — ${isHome(e)?'Thuis':'Uit'} tegen ${esc(opponent(e))}</small></div><div class="admin-row-actions"><button class="danger-button" data-delete-task="${a.type}:${a.id}">Verwijder</button></div></div>`}).join('')||'<div class="empty-state">Nog geen taken.</div>';$$('[data-delete-task]').forEach(b=>b.addEventListener('click',()=>deleteTask(b.dataset.deleteTask)))
+}
+async function addTask(ev){ev.preventDefault();const eventId=$('#task-event').value,playerId=$('#task-player').value,type=$('#task-type').value;if(!eventId||!playerId)return;const table=type==='driving'?'transport_assignments':'laundry_assignments';const {error}=await sb.from(table).insert({event_id:eventId,player_id:playerId,status:'scheduled'});if(error){console.error(error);return toast(error.code==='23505'?'Deze taak bestaat al':'Taak toevoegen mislukt')}toast('Taak toegevoegd ✓');ev.currentTarget.reset();await loadRemote();setAdminTab('tasks')}
+async function deleteTask(key){const [type,id]=key.split(':');if(!confirm('Deze taak verwijderen?'))return;const table=type==='driving'?'transport_assignments':'laundry_assignments';const {error}=await sb.from(table).delete().eq('id',id);if(error)return toast('Taak verwijderen mislukt');toast('Taak verwijderd');await loadRemote();setAdminTab('tasks')}
+async function openAdmin(){if(!isCoach())return;navigate('admin');renderAdminData();await loadAdminUsers()}
 
 function navigate(page){$$('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));window.scrollTo({top:0,behavior:'smooth'})}
 function setSchedule(tab){$$('.segment').forEach(b=>b.classList.toggle('active',b.dataset.scheduleTab===tab));$$('.schedule-pane').forEach(p=>p.classList.toggle('active',p.id===`schedule-${tab}`))}
@@ -221,7 +275,7 @@ function updateInstallVisibility(){const installed=matchMedia('(display-mode: st
 
 function bind(){
   $$('[data-page]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));$$('[data-jump]').forEach(b=>b.addEventListener('click',()=>{navigate(b.dataset.jump);if(b.dataset.schedule)setSchedule(b.dataset.schedule)}));$$('[data-schedule-tab]').forEach(b=>b.addEventListener('click',()=>setSchedule(b.dataset.scheduleTab)));
-  $('#absence-form').addEventListener('submit',submitAbsence);$('#account-button').addEventListener('click',()=>{renderAccount();openModal('#account-modal')});$('#install-button').addEventListener('click',installHelp);$('#install-top').addEventListener('click',installHelp);$('#modal-backdrop').addEventListener('click',closeModals);$$('[data-close-modal]').forEach(b=>b.addEventListener('click',closeModals));
+  $('#absence-form').addEventListener('submit',submitAbsence);$('#account-button').addEventListener('click',()=>{renderAccount();openModal('#account-modal')});$('#install-button').addEventListener('click',installHelp);$('#install-top').addEventListener('click',installHelp);$('#admin-top')?.addEventListener('click',openAdmin);$('#admin-refresh')?.addEventListener('click',async()=>{await loadRemote();await loadAdminUsers();toast('Beheer bijgewerkt ✓')});$$('[data-admin-tab]').forEach(b=>b.addEventListener('click',()=>setAdminTab(b.dataset.adminTab)));$('#create-parent-form')?.addEventListener('submit',createParentAccount);$('#generate-password')?.addEventListener('click',generatePassword);$('#match-form')?.addEventListener('submit',saveMatch);$('#match-cancel')?.addEventListener('click',resetMatchForm);$('#task-form')?.addEventListener('submit',addTask);$('#modal-backdrop').addEventListener('click',closeModals);$$('[data-close-modal]').forEach(b=>b.addEventListener('click',closeModals));
   if(DB_ENABLED)$('#login-form').addEventListener('submit',login);
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;updateInstallVisibility()});window.addEventListener('appinstalled',()=>{installPrompt=null;updateInstallVisibility();toast('Teamapp geïnstalleerd ✓')});
   window.addEventListener('online',()=>{if(DB_ENABLED&&state.user)loadRemote()});window.addEventListener('offline',()=>{state.online=false;renderSync()});

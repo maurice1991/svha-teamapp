@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=9.1">
+  <link rel="stylesheet" href="styles.css?v=10.0">
   <title>SVHA MO13-1 Teamapp</title>
 </head>
 <body>
@@ -24,6 +24,7 @@
       </button>
       <div class="top-actions">
         <span id="sync-badge" class="sync-badge demo"><span class="sync-dot"></span><span id="sync-text">Demo</span></span>
+        <button id="admin-top" class="icon-button hidden" type="button" aria-label="Beheer" title="Beheer">⚙️</button>
         <button id="install-top" class="icon-button" type="button" aria-label="Installeer app" title="Installeer app">⬇️</button>
         <button id="account-button" class="avatar-button" type="button" aria-label="Account">👤</button>
       </div>
@@ -132,6 +133,77 @@
       </div>
     </section>
 
+
+    <section class="page" id="page-admin">
+      <div class="page-head admin-head"><div><p class="eyebrow">Trainer / beheerder</p><h1>Team beheren</h1><p class="muted">Ouders, wedstrijden en taken direct vanuit de app beheren.</p></div><button class="secondary-button" id="admin-refresh" type="button">↻ Vernieuwen</button></div>
+      <div class="admin-segments" role="tablist">
+        <button class="admin-segment active" data-admin-tab="parents">👤 Ouders</button>
+        <button class="admin-segment" data-admin-tab="matches">⚽ Wedstrijden</button>
+        <button class="admin-segment" data-admin-tab="tasks">🚗 Taken</button>
+      </div>
+
+      <div class="admin-pane active" id="admin-parents">
+        <div class="admin-grid">
+          <article class="card form-card">
+            <p class="eyebrow">Nieuw account</p><h2>Ouder toevoegen</h2>
+            <form id="create-parent-form">
+              <div class="field"><label>Naam ouder</label><input id="parent-name" placeholder="Bijv. moeder van Lexi"></div>
+              <div class="field"><label>E-mailadres</label><input id="parent-email" type="email" placeholder="ouder@email.nl" required></div>
+              <div class="field"><label>Tijdelijk wachtwoord</label><div class="password-row"><input id="parent-password" type="text" minlength="8" placeholder="Minimaal 8 tekens" required><button class="secondary-button" id="generate-password" type="button">Genereer</button></div></div>
+              <div class="field"><label>Speelster koppelen</label><select id="parent-player" required></select></div>
+              <button class="primary-button" type="submit">Account aanmaken</button>
+              <p class="form-help">Geef het e-mailadres en tijdelijke wachtwoord rechtstreeks aan de ouder.</p>
+            </form>
+          </article>
+          <article class="card panel">
+            <div class="panel-head"><div><p class="eyebrow">Accounts</p><h2>Ouders & koppelingen</h2></div><span class="count-badge" id="parent-count">0</span></div>
+            <div id="admin-parent-list" class="admin-list"><div class="empty-state">Laden…</div></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="admin-pane" id="admin-matches">
+        <div class="admin-grid">
+          <article class="card form-card">
+            <p class="eyebrow">Programma</p><h2>Wedstrijd toevoegen</h2>
+            <form id="match-form">
+              <input type="hidden" id="match-id">
+              <div class="field"><label>Datum</label><input id="match-date" type="date" required></div>
+              <div class="field"><label>Tijd</label><input id="match-time" type="time" required></div>
+              <div class="field"><label>Thuis / uit</label><select id="match-home-away"><option value="home">Thuis</option><option value="away">Uit</option></select></div>
+              <div class="field"><label>Tegenstander</label><input id="match-opponent" placeholder="Bijv. DTS Ede MO13-1" required></div>
+              <div class="field"><label>Ronde</label><input id="match-round" type="number" min="1" placeholder="1"></div>
+              <div class="field"><label>Locatie</label><input id="match-location" placeholder="Sportpark"></div>
+              <div class="field"><label>Adres</label><input id="match-address" placeholder="Straat 1, Plaats"></div>
+              <div class="form-actions"><button class="primary-button" type="submit" id="match-save">Wedstrijd opslaan</button><button class="secondary-button hidden" type="button" id="match-cancel">Annuleren</button></div>
+            </form>
+          </article>
+          <article class="card panel">
+            <div class="panel-head"><div><p class="eyebrow">Actueel</p><h2>Wedstrijden beheren</h2></div></div>
+            <div id="admin-match-list" class="admin-list"></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="admin-pane" id="admin-tasks">
+        <div class="admin-grid">
+          <article class="card form-card">
+            <p class="eyebrow">Planning</p><h2>Taak toevoegen</h2>
+            <form id="task-form">
+              <div class="field"><label>Wedstrijd</label><select id="task-event" required></select></div>
+              <div class="field"><label>Taak</label><select id="task-type"><option value="driving">🚗 Rijden</option><option value="laundry">🧺 Wastas</option></select></div>
+              <div class="field"><label>Speelster / ouder</label><select id="task-player" required></select></div>
+              <button class="primary-button" type="submit">Taak toevoegen</button>
+            </form>
+          </article>
+          <article class="card panel">
+            <div class="panel-head"><div><p class="eyebrow">Ingepland</p><h2>Rijden & wastas</h2></div></div>
+            <div id="admin-task-list" class="admin-list"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="page" id="page-team">
       <div class="page-head"><div><p class="eyebrow">Selectie</p><h1>Team</h1><p class="muted">SVHA MO13-1 · 13 speelsters.</p></div></div>
       <div class="team-grid" id="team-grid"></div>
@@ -175,8 +247,8 @@
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=9.1"></script>
+<script src="config.js?v=10.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=9.1" defer></script>
+<script src="app.js?v=10.0" defer></script>
 </body>
 </html>

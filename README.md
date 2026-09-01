@@ -1,3 +1,7 @@
+SVHA Teamapp v10.5
+
+Nieuw: oog-icoon bij het wachtwoordveld op het inlogscherm om het wachtwoord te tonen/verbergen.
+
 # SVHA MO13-1 Teamapp v10.4
 
 Nieuw in v10.4:

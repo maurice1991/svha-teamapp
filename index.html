@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=10.2">
+  <link rel="stylesheet" href="styles.css?v=10.5">
   <title>SVHA MO13-1 Teamapp</title>
 </head>
 <body>
@@ -283,7 +283,7 @@
     <p>Log in met het e-mailadres en wachtwoord dat je van de trainer hebt gekregen.</p>
     <form id="login-form">
       <div class="field"><label for="login-email">E-mailadres</label><input id="login-email" type="email" autocomplete="email" placeholder="ouder@email.nl" required></div>
-      <div class="field"><label for="login-password">Wachtwoord</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Je wachtwoord" minlength="6" required></div>
+      <div class="field"><label for="login-password">Wachtwoord</label><div class="password-input-wrap"><input id="login-password" type="password" autocomplete="current-password" placeholder="Je wachtwoord" minlength="6" required><button class="password-toggle" id="login-password-toggle" type="button" aria-label="Wachtwoord tonen" aria-pressed="false" title="Wachtwoord tonen"><span aria-hidden="true">👁️</span></button></div></div>
       <button class="primary-button" type="submit">Inloggen</button>
       <p class="login-help">Nog geen account of wachtwoord vergeten? Neem contact op met de trainer.</p>
     </form>
@@ -294,6 +294,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="config.js?v=10.4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=10.4" defer></script>
+<script src="app.js?v=10.5" defer></script>
 </body>
 </html>

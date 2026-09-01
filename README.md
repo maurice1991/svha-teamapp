@@ -28,3 +28,7 @@ git push
 ```
 
 Vercel deployt daarna automatisch.
+
+
+## v10.1
+Coach- en ouderaccounts kunnen vanuit Mijn account zelf een wachtwoord instellen of wijzigen. Dit is vooral bedoeld voor accounts die eerder via een magic link zijn aangemaakt en nog geen wachtwoord hebben.

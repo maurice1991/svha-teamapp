@@ -227,7 +227,43 @@ function openModal(id){$('#modal-backdrop').classList.remove('hidden');$(id).cla
 function closeModals(){$('#modal-backdrop').classList.add('hidden');$$('.modal').forEach(m=>m.classList.add('hidden'))}
 function renderAccount(){
   const el=$('#account-content');if(state.mode==='demo'){el.innerHTML=`<div class="account-box"><div class="account-line"><small>Status</small><strong>Demo-modus</strong></div><p class="modal-copy">De app werkt nu lokaal. De Supabase-koppeling is geconfigureerd. Publiceer de app via HTTPS en voer het databaseschema uit om live te gaan.</p></div>`;return}
-  const linked=state.parentPlayerIds.map(id=>player(id)?.name).filter(Boolean).join(', ')||'Nog niet gekoppeld';el.innerHTML=`<div class="account-box"><div class="account-line"><small>Ingelogd als</small><strong>${esc(state.user?.email||'')}</strong></div><div class="account-line"><small>Rol</small><strong>${state.profile?.role==='coach'?'Trainer / beheerder':'Ouder'}</strong></div><div class="account-line"><small>Gekoppelde speelster(s)</small><strong>${esc(linked)}</strong></div><button class="secondary-button" id="logout-button">Uitloggen</button></div>`;$('#logout-button')?.addEventListener('click',async()=>{await sb.auth.signOut();closeModals()});
+  const linked=state.parentPlayerIds.map(id=>player(id)?.name).filter(Boolean).join(', ')||'Nog niet gekoppeld';
+  el.innerHTML=`<div class="account-box">
+    <div class="account-line"><small>Ingelogd als</small><strong>${esc(state.user?.email||'')}</strong></div>
+    <div class="account-line"><small>Rol</small><strong>${state.profile?.role==='coach'?'Trainer / beheerder':'Ouder'}</strong></div>
+    <div class="account-line"><small>Gekoppelde speelster(s)</small><strong>${esc(linked)}</strong></div>
+    <form id="own-password-form" class="account-password-form">
+      <div><small class="account-section-label">Wachtwoord instellen / wijzigen</small><p>Gebruik dit ook als je account eerder met een inloglink is aangemaakt.</p></div>
+      <div class="field"><label for="own-password">Nieuw wachtwoord</label><input id="own-password" type="password" minlength="8" autocomplete="new-password" placeholder="Minimaal 8 tekens" required></div>
+      <div class="field"><label for="own-password-confirm">Herhaal wachtwoord</label><input id="own-password-confirm" type="password" minlength="8" autocomplete="new-password" placeholder="Nogmaals hetzelfde wachtwoord" required></div>
+      <button class="secondary-button" type="submit">Wachtwoord opslaan</button>
+      <p class="account-password-status" id="own-password-status"></p>
+    </form>
+    <button class="secondary-button" id="logout-button">Uitloggen</button>
+  </div>`;
+  $('#own-password-form')?.addEventListener('submit',changeOwnPassword);
+  $('#logout-button')?.addEventListener('click',async()=>{await sb.auth.signOut();closeModals()});
+}
+async function changeOwnPassword(ev){
+  ev.preventDefault();
+  const password=$('#own-password')?.value||'';
+  const confirmPassword=$('#own-password-confirm')?.value||'';
+  const status=$('#own-password-status');
+  const button=ev.currentTarget.querySelector('button[type="submit"]');
+  if(password.length<8){if(status)status.textContent='Gebruik minimaal 8 tekens.';return}
+  if(password!==confirmPassword){if(status)status.textContent='De twee wachtwoorden zijn niet hetzelfde.';return}
+  if(button){button.disabled=true;button.textContent='Opslaan…'}
+  if(status)status.textContent='Wachtwoord wordt opgeslagen…';
+  const {error}=await sb.auth.updateUser({password});
+  if(error){
+    console.error('Password update error:',error);
+    if(status)status.textContent='Opslaan mislukt: '+String(error.message||'onbekende fout');
+    if(button){button.disabled=false;button.textContent='Wachtwoord opslaan'}
+    return;
+  }
+  ev.currentTarget.reset();
+  if(status)status.textContent='Wachtwoord opgeslagen ✓ Je kunt dit voortaan gebruiken om in te loggen.';
+  if(button){button.disabled=false;button.textContent='Wachtwoord opslaan'}
 }
 function showAuth(){$('#auth-screen').classList.remove('hidden')}function hideAuth(){$('#auth-screen').classList.add('hidden')}
 async function login(ev){

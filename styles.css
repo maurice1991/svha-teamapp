@@ -20,3 +20,6 @@ button,input,select,textarea{font:inherit}.hidden{display:none!important}button{
 @media(display-mode:standalone){#install-card,#install-top{display:none!important}.topbar{padding-top:env(safe-area-inset-top)}}
 
 .primary-button:disabled{opacity:.58;cursor:not-allowed;filter:saturate(.6)}
+
+.login-help{margin:10px 0 0;font-size:11px;line-height:1.45;color:var(--muted)}
+.auth-card .field{margin-bottom:13px}

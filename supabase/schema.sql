@@ -64,7 +64,7 @@ create table if not exists public.laundry_assignments (
   unique(event_id,player_id)
 );
 
--- Automatisch profiel aanmaken na de eerste magic-link login.
+-- Automatisch profiel aanmaken wanneer een Auth-gebruiker wordt aangemaakt.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin

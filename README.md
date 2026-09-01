@@ -1,73 +1,32 @@
-# SVHA MO13-1 Teamapp v8
+# SVHA MO13-1 Teamapp v9
 
-Deze versie is gekoppeld aan het opgegeven **Supabase-project** en is voorbereid als **PWA** voor installatie op iPhone en Android.
+Deze versie gebruikt **e-mail + wachtwoord** via Supabase Auth. Er zijn geen magic links, Resend of SMTP nodig voor normaal inloggen.
 
-## Wat al gekoppeld is
-- Project URL: ingesteld in `config.js`
-- Supabase publishable key: ingesteld in `config.js`
-- Magic-link login: actief zodra de app via HTTPS wordt geopend
-- Centrale data: speelsters, wedstrijden, trainingen, afmeldingen, rijschema en wastas
-- PWA: manifest, iconen en service worker aanwezig
+## Supabase instellen zonder e-mail
 
-> De publishable key is bedoeld voor gebruik in client-apps. Zet nooit een `service_role` of secret key in deze map.
+1. Ga naar **Authentication → Providers → Email** en laat de Email-provider ingeschakeld.
+2. Ga naar de algemene Auth-instellingen en zet **Allow new users to sign up** uit. De app heeft bewust geen openbare registratie.
+3. Maak ouders handmatig aan via **Authentication → Users → Add user → Create new user**.
+4. Vul e-mailadres en een tijdelijk/afgesproken wachtwoord in en laat **Auto Confirm User** aan staan. Zo hoeft de ouder geen bevestigingsmail te ontvangen.
+5. Koppel daarna het Auth-user-id aan de juiste speelster in `parent_players`.
+6. Zet het profiel van de trainer in `profiles.role` op `coach`.
 
-## Nog 1 verplichte Supabase-stap
-Open in Supabase **SQL Editor** en voer de volledige inhoud van `supabase/schema.sql` uit.
+## Bestaand magic-link testaccount
 
-Dit maakt:
-- `players`
-- `profiles`
-- `parent_players`
-- `events`
-- `absences`
-- `transport_assignments`
-- `laundry_assignments`
-- Row Level Security-regels
-- de huidige speelsters, wedstrijden, rijschema en wastasplanning
+Als een bestaand testaccount nog geen wachtwoord heeft, is het voor deze kleine pilot het eenvoudigst om dat account onder **Authentication → Users** te verwijderen en opnieuw aan te maken met e-mail + wachtwoord en Auto Confirm aan.
 
-## Daarna: URL-instellingen voor login
-Zodra je de app op Vercel hebt gepubliceerd:
-1. Open Supabase → **Authentication** → **URL Configuration**.
-2. Zet **Site URL** op de uiteindelijke Vercel-URL.
-3. Voeg dezelfde URL toe aan **Redirect URLs**.
+## Deploy
 
-Voor lokaal testen kun je eventueel ook `http://localhost:8000` toevoegen.
+Kopieer de bestanden over je huidige Git-project en voer uit:
 
-## Eerste trainer/beheerder
-1. Log één keer in via de teamapp met jouw e-mailadres.
-2. Open Supabase → **Table Editor** → `profiles`.
-3. Verander bij jouw profiel `role` van `parent` naar `coach`.
-
-## Ouders koppelen aan een speelster
-Nadat een ouder één keer heeft ingelogd:
-1. Zoek de user UUID in Supabase Authentication.
-2. Zoek de speelster-ID in `players`.
-3. Voeg in `parent_players` een regel toe met `user_id` en `player_id`.
-
-Daarna kan een ouder alleen de gekoppelde speelster afmelden en alleen bij haar eigen rij-/wastaak de status wijzigen.
-
-## Installeren op telefoon
-### iPhone
-Safari → Deel → **Zet op beginscherm** → Voeg toe.
-
-### Android
-Chrome → menu → **App installeren** / **Toevoegen aan startscherm**.
-
-De PWA moet via HTTPS draaien. Vercel is hiervoor geschikt.
-
-## Lokaal bekijken
-Open de map niet rechtstreeks met `file://`. Gebruik bijvoorbeeld:
-
-```bash
-python -m http.server 8000
+```powershell
+git add .
+git commit -m "Switch to password login"
+git push
 ```
 
-Open daarna `http://localhost:8000`.
+Vercel deployt daarna automatisch.
 
+## Belangrijk
 
-## v8.1 login-diagnose
-De login toont nu de echte Supabase-foutmelding en blokkeert een nieuwe magic-link aanvraag 60 seconden na een succesvolle aanvraag. Dit voorkomt onduidelijke meldingen bij de standaard Supabase rate limit.
-
-
-## v8.2
-Deze versie forceert verse JS/CSS-bestanden op Vercel/PWA, gebruikt een nieuwe service-worker cache en toont de 60-seconden teller ook wanneer Supabase een rate-limit teruggeeft.
+Zet nooit een Supabase `service_role` of secret key in deze frontend. Alleen de publishable key hoort in `config.js`.

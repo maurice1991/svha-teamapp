@@ -163,18 +163,20 @@
     <img src="assets/svha-logo.png" alt="SVHA logo">
     <p class="eyebrow">SVHA MO13-1</p>
     <h1>Inloggen bij de teamapp</h1>
-    <p>Vul je e-mailadres in. Je ontvangt een veilige inloglink; een wachtwoord is niet nodig.</p>
+    <p>Log in met het e-mailadres en wachtwoord dat je van de trainer hebt gekregen.</p>
     <form id="login-form">
       <div class="field"><label for="login-email">E-mailadres</label><input id="login-email" type="email" autocomplete="email" placeholder="ouder@email.nl" required></div>
-      <button class="primary-button" type="submit">Stuur inloglink</button>
+      <div class="field"><label for="login-password">Wachtwoord</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Je wachtwoord" minlength="6" required></div>
+      <button class="primary-button" type="submit">Inloggen</button>
+      <p class="login-help">Nog geen account of wachtwoord vergeten? Neem contact op met de trainer.</p>
     </form>
     <p class="auth-status" id="auth-status"></p>
   </div>
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=8.2"></script>
+<script src="config.js?v=9.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=8.2" defer></script>
+<script src="app.js?v=9.0" defer></script>
 </body>
 </html>

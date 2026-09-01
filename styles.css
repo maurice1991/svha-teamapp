@@ -46,3 +46,16 @@ button,input,select,textarea{font:inherit}.hidden{display:none!important}button{
 
 /* Password visibility toggle */
 .password-input-wrap{position:relative}.password-input-wrap input{padding-right:52px}.password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:transparent;display:grid;place-items:center;font-size:18px;line-height:1;color:var(--muted);cursor:pointer}.password-toggle:hover{background:var(--green-50);color:var(--green-900)}.password-toggle:focus-visible{outline:2px solid #84c49f;outline-offset:1px}.password-toggle[aria-pressed="true"]{background:var(--green-100);color:var(--green-900)}
+
+
+/* v10.6 desktop navigation under header */
+.desktop-nav{position:sticky;top:82px;z-index:35;background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);box-shadow:0 7px 22px rgba(15,48,31,.06);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.desktop-nav-inner{height:58px;display:flex;align-items:center;gap:7px}
+.desktop-nav .nav-item{appearance:none;border:0;background:transparent;color:#5d6b63;height:42px;padding:0 15px;border-radius:12px;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;font-weight:850;cursor:pointer;transition:background .16s ease,color .16s ease,transform .16s ease}
+.desktop-nav .nav-item:hover{background:#f1f6f3;color:var(--green-900)}
+.desktop-nav .nav-item:active{transform:translateY(1px)}
+.desktop-nav .nav-item span{font-size:16px;line-height:1}
+.desktop-nav .nav-item small{font-size:12px;white-space:nowrap}
+.desktop-nav .nav-item.active{background:var(--green-100);color:var(--green-900)}
+.desktop-nav .nav-item.absence-nav.active{background:#fff0f0;color:#9e3636}
+@media(max-width:680px){.desktop-nav{display:none}}

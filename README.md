@@ -1,3 +1,24 @@
+SVHA Teamapp v10.6
+
+Nieuw in v10.6:
+- Op pc staat de hoofdnavigatie nu direct onder de groene header.
+- De desktopnavigatie blijft zichtbaar tijdens scrollen.
+- Op mobiel blijft de bestaande navigatie onderaan staan.
+- Actieve pagina wordt in beide navigaties tegelijk gemarkeerd.
+
+## Deploy
+Kopieer de bestanden over je huidige Git-project en voer uit:
+
+```powershell
+git add .
+git commit -m "Add desktop navigation under header"
+git push
+```
+
+Vercel deployt daarna automatisch.
+
+---
+
 SVHA Teamapp v10.5
 
 Nieuw: oog-icoon bij het wachtwoordveld op het inlogscherm om het wachtwoord te tonen/verbergen.

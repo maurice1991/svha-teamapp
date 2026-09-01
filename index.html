@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=10.5">
+  <link rel="stylesheet" href="styles.css?v=10.6">
   <title>SVHA MO13-1 Teamapp</title>
 </head>
 <body>
@@ -30,6 +30,16 @@
       </div>
     </div>
   </header>
+
+  <nav class="desktop-nav" aria-label="Hoofdnavigatie desktop">
+    <div class="desktop-nav-inner container">
+      <button class="nav-item active" data-page="home"><span>🏠</span><small>Home</small></button>
+      <button class="nav-item" data-page="matches"><span>⚽</span><small>Wedstrijden</small></button>
+      <button class="nav-item" data-page="schedule"><span>📅</span><small>Schema</small></button>
+      <button class="nav-item absence-nav" data-page="absence"><span>❌</span><small>Afmelden</small></button>
+      <button class="nav-item" data-page="team"><span>👥</span><small>Team</small></button>
+    </div>
+  </nav>
 
   <main class="container main">
     <section class="page active" id="page-home">
@@ -292,8 +302,8 @@
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=10.4"></script>
+<script src="config.js?v=10.6"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=10.5" defer></script>
+<script src="app.js?v=10.6" defer></script>
 </body>
 </html>

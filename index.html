@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=10.6">
+  <link rel="stylesheet" href="styles.css?v=10.7">
   <title>SVHA MO13-1 Teamapp</title>
 </head>
 <body>
@@ -33,11 +33,28 @@
 
   <nav class="desktop-nav" aria-label="Hoofdnavigatie desktop">
     <div class="desktop-nav-inner container">
-      <button class="nav-item active" data-page="home"><span>🏠</span><small>Home</small></button>
-      <button class="nav-item" data-page="matches"><span>⚽</span><small>Wedstrijden</small></button>
-      <button class="nav-item" data-page="schedule"><span>📅</span><small>Schema</small></button>
-      <button class="nav-item absence-nav" data-page="absence"><span>❌</span><small>Afmelden</small></button>
-      <button class="nav-item" data-page="team"><span>👥</span><small>Team</small></button>
+      <div class="desktop-nav-surface">
+        <button class="nav-item selected active" data-page="home" aria-current="page">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 10.5 12 3.75l8.5 6.75"/><path d="M5.5 9.5v10.25h13V9.5"/><path d="M9.25 19.75V14h5.5v5.75"/></svg></span>
+          <small>Home</small>
+        </button>
+        <button class="nav-item" data-page="matches">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.75"/><path d="m12 7.4 3 2.15-1.15 3.5h-3.7L9 9.55 12 7.4Z"/><path d="m9 9.55-3.15-.75M15 9.55l3.15-.75M10.15 13.05l-1.8 2.8M13.85 13.05l1.8 2.8M8.35 15.85l.35 2.9M15.65 15.85l-.35 2.9"/></svg></span>
+          <small>Wedstrijden</small>
+        </button>
+        <button class="nav-item" data-page="schedule">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.75" y="5.25" width="16.5" height="15" rx="2.5"/><path d="M8 3.75v3M16 3.75v3M3.75 9.25h16.5"/><path d="M8 13h2M14 13h2M8 17h2M14 17h2"/></svg></span>
+          <small>Schema</small>
+        </button>
+        <button class="nav-item absence-nav" data-page="absence">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.75"/><path d="m9 9 6 6M15 9l-6 6"/></svg></span>
+          <small>Afmelden</small>
+        </button>
+        <button class="nav-item" data-page="team">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8.5" r="3.25"/><path d="M3.75 19.5v-1.15A5.25 5.25 0 0 1 9 13.1a5.25 5.25 0 0 1 5.25 5.25v1.15"/><circle cx="17" cy="9.5" r="2.5"/><path d="M15.5 14.6a4.7 4.7 0 0 1 4.75 4.65v.25"/></svg></span>
+          <small>Team</small>
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -302,8 +319,8 @@
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=10.6"></script>
+<script src="config.js?v=10.7"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=10.6" defer></script>
+<script src="app.js?v=10.7" defer></script>
 </body>
 </html>

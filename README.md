@@ -42,3 +42,10 @@ git push
 ```
 
 Vercel deployt daarna automatisch.
+
+
+## v10.7
+- Desktopnavigatie volledig opnieuw ontworpen met moderne SVG-iconen.
+- Hover-, focus- en klikinteracties toegevoegd.
+- Geselecteerde route krijgt zowel `selected` als `active` en `aria-current="page"`.
+- Mobiele navigatie blijft ongewijzigd.

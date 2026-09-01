@@ -48,14 +48,57 @@ button,input,select,textarea{font:inherit}.hidden{display:none!important}button{
 .password-input-wrap{position:relative}.password-input-wrap input{padding-right:52px}.password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:transparent;display:grid;place-items:center;font-size:18px;line-height:1;color:var(--muted);cursor:pointer}.password-toggle:hover{background:var(--green-50);color:var(--green-900)}.password-toggle:focus-visible{outline:2px solid #84c49f;outline-offset:1px}.password-toggle[aria-pressed="true"]{background:var(--green-100);color:var(--green-900)}
 
 
-/* v10.6 desktop navigation under header */
-.desktop-nav{position:sticky;top:82px;z-index:35;background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);box-shadow:0 7px 22px rgba(15,48,31,.06);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.desktop-nav-inner{height:58px;display:flex;align-items:center;gap:7px}
-.desktop-nav .nav-item{appearance:none;border:0;background:transparent;color:#5d6b63;height:42px;padding:0 15px;border-radius:12px;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;font-weight:850;cursor:pointer;transition:background .16s ease,color .16s ease,transform .16s ease}
-.desktop-nav .nav-item:hover{background:#f1f6f3;color:var(--green-900)}
-.desktop-nav .nav-item:active{transform:translateY(1px)}
-.desktop-nav .nav-item span{font-size:16px;line-height:1}
-.desktop-nav .nav-item small{font-size:12px;white-space:nowrap}
-.desktop-nav .nav-item.active{background:var(--green-100);color:var(--green-900)}
-.desktop-nav .nav-item.absence-nav.active{background:#fff0f0;color:#9e3636}
+/* v10.7 refined desktop navigation */
+.desktop-nav{
+  position:sticky;top:82px;z-index:35;
+  background:rgba(244,247,245,.88);
+  border-bottom:1px solid rgba(7,84,54,.08);
+  box-shadow:0 10px 30px rgba(15,48,31,.035);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+}
+.desktop-nav-inner{height:72px;display:flex;align-items:center}
+.desktop-nav-surface{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px;
+  border:1px solid rgba(7,84,54,.09);
+  border-radius:18px;
+  background:rgba(255,255,255,.72);
+  box-shadow:0 5px 18px rgba(22,54,37,.045),inset 0 1px 0 rgba(255,255,255,.85);
+}
+.desktop-nav .nav-item{
+  position:relative;appearance:none;border:0;outline:0;
+  height:48px;padding:0 17px;border-radius:13px;
+  background:transparent;color:#66726b;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-weight:800;letter-spacing:-.01em;cursor:pointer;
+  transition:color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s cubic-bezier(.2,.8,.2,1);
+}
+.desktop-nav .nav-item::after{
+  content:"";position:absolute;left:18px;right:18px;bottom:3px;height:2px;
+  border-radius:99px;background:var(--green-700);
+  transform:scaleX(0);opacity:0;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),opacity .2s ease;
+}
+.desktop-nav .nav-icon{width:19px;height:19px;display:grid;place-items:center;flex:0 0 auto}
+.desktop-nav .nav-icon svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.desktop-nav .nav-item small{font-size:12.5px;line-height:1;white-space:nowrap;font-weight:800}
+.desktop-nav .nav-item:hover{
+  color:var(--green-900);background:rgba(255,255,255,.94);
+  box-shadow:0 7px 18px rgba(15,62,38,.07);
+  transform:translateY(-1px);
+}
+.desktop-nav .nav-item:hover .nav-icon{transform:translateY(-.5px)}
+.desktop-nav .nav-item:active{transform:translateY(0) scale(.985)}
+.desktop-nav .nav-item:focus-visible{box-shadow:0 0 0 3px rgba(22,164,93,.18),0 7px 18px rgba(15,62,38,.07)}
+.desktop-nav .nav-item.selected,
+.desktop-nav .nav-item.active{
+  color:var(--green-950);
+  background:linear-gradient(180deg,#fff 0%,#f7fbf8 100%);
+  box-shadow:0 8px 22px rgba(7,84,54,.10),inset 0 0 0 1px rgba(7,84,54,.055);
+}
+.desktop-nav .nav-item.selected::after,
+.desktop-nav .nav-item.active::after{transform:scaleX(1);opacity:1}
+.desktop-nav .nav-item.selected .nav-icon,
+.desktop-nav .nav-item.active .nav-icon{color:var(--green-700)}
 @media(max-width:680px){.desktop-nav{display:none}}

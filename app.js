@@ -308,7 +308,7 @@ async function addTask(ev){ev.preventDefault();const eventId=$('#task-event').va
 async function deleteTask(key){const [type,id]=key.split(':');if(!confirm('Deze taak verwijderen?'))return;const table=type==='driving'?'transport_assignments':'laundry_assignments';const {error}=await sb.from(table).delete().eq('id',id);if(error)return toast('Taak verwijderen mislukt');toast('Taak verwijderd');await loadRemote();setAdminTab('tasks')}
 async function openAdmin(){if(!isCoach())return;navigate('admin');setAdminTab('availability');renderAdminData();await loadAdminUsers()}
 
-function navigate(page){$$('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));window.scrollTo({top:0,behavior:'smooth'})}
+function navigate(page){$$('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));$$('[data-page]').forEach(b=>{const selected=b.dataset.page===page;b.classList.toggle('active',selected);b.classList.toggle('selected',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});window.scrollTo({top:0,behavior:'smooth'})}
 function setSchedule(tab){$$('.segment').forEach(b=>b.classList.toggle('active',b.dataset.scheduleTab===tab));$$('.schedule-pane').forEach(p=>p.classList.toggle('active',p.id===`schedule-${tab}`))}
 function openModal(id){$('#modal-backdrop').classList.remove('hidden');$(id).classList.remove('hidden')}
 function closeModals(){$('#modal-backdrop').classList.add('hidden');$$('.modal').forEach(m=>m.classList.add('hidden'))}

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#087443">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SVHA MO13-1">
+  <meta name="description" content="Teamapp voor SVHA MO13-1: wedstrijden, trainingen, rijschema, wastas en afmeldingen.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>SVHA MO13-1 Teamapp</title>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-inner container">
+      <button class="brand" data-page="home" aria-label="Naar overzicht">
+        <img src="assets/svha-logo.png" alt="SVHA logo" class="brand-logo">
+        <span class="brand-copy"><strong>SVHA MO13-1</strong><small>Teamapp · seizoen 2026/2027</small></span>
+      </button>
+      <div class="top-actions">
+        <span id="sync-badge" class="sync-badge demo"><span class="sync-dot"></span><span id="sync-text">Demo</span></span>
+        <button id="install-top" class="icon-button" type="button" aria-label="Installeer app" title="Installeer app">⬇️</button>
+        <button id="account-button" class="avatar-button" type="button" aria-label="Account">👤</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main">
+    <section class="page active" id="page-home">
+      <div class="welcome-row">
+        <div>
+          <p class="eyebrow">Overzicht</p>
+          <h1>Alles voor het team op één plek</h1>
+          <p class="muted">Wedstrijden, trainingen, taken en afmeldingen.</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <article class="card next-card">
+          <div class="card-label"><span>Volgende activiteit</span><span class="live-pill">Komend</span></div>
+          <div class="next-content">
+            <div class="big-icon" id="next-icon">⚽</div>
+            <div class="next-copy"><h2 id="next-title">Laden…</h2><p id="next-date"></p><small id="next-meta"></small></div>
+          </div>
+          <button class="primary-button compact" data-jump="matches" id="next-action">Bekijk details</button>
+        </article>
+
+        <article class="card stat-card">
+          <div class="mini-icon">🚗</div>
+          <div><small>Mijn rijtaken</small><strong id="my-drive-count">0</strong><span>ingepland</span></div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="mini-icon">🧺</div>
+          <div><small>Mijn wastaken</small><strong id="my-wash-count">0</strong><span>ingepland</span></div>
+        </article>
+      </div>
+
+      <div class="content-grid">
+        <article class="card panel">
+          <div class="panel-head"><div><p class="eyebrow">Agenda</p><h2>Komende activiteiten</h2></div><button class="text-button" data-jump="matches">Alles bekijken</button></div>
+          <div id="upcoming-list" class="activity-list"></div>
+        </article>
+
+        <article class="card panel quick-panel">
+          <div class="panel-head"><div><p class="eyebrow">Snel</p><h2>Direct regelen</h2></div></div>
+          <div class="quick-grid">
+            <button class="quick-action" data-jump="absence"><span>❌</span><div><strong>Afmelden</strong><small>Training of wedstrijd</small></div></button>
+            <button class="quick-action" data-jump="schedule" data-schedule="driving"><span>🚗</span><div><strong>Rijschema</strong><small>Bekijk wie er rijdt</small></div></button>
+            <button class="quick-action" data-jump="schedule" data-schedule="laundry"><span>🧺</span><div><strong>Wastas</strong><small>Bekijk de planning</small></div></button>
+          </div>
+        </article>
+      </div>
+
+      <article class="install-card" id="install-card">
+        <div class="install-icon">📱</div>
+        <div><strong>Zet de teamapp op je telefoon</strong><p>Open hem daarna net als een gewone app vanaf je beginscherm.</p></div>
+        <button class="secondary-button" id="install-button" type="button">Installeren</button>
+      </article>
+    </section>
+
+    <section class="page" id="page-matches">
+      <div class="page-head"><div><p class="eyebrow">Programma</p><h1>Wedstrijden</h1><p class="muted">Het actuele wedstrijdprogramma van SVHA MO13-1.</p></div></div>
+      <div class="matches-grid" id="matches-grid"></div>
+    </section>
+
+    <section class="page" id="page-schedule">
+      <div class="page-head"><div><p class="eyebrow">Planning</p><h1>Schema</h1><p class="muted">Trainingen, vervoer en wastas overzichtelijk bij elkaar.</p></div></div>
+      <div class="segment-control" role="tablist" aria-label="Schema kiezen">
+        <button class="segment active" data-schedule-tab="training">🏃 Training</button>
+        <button class="segment" data-schedule-tab="driving">🚗 Rijden</button>
+        <button class="segment" data-schedule-tab="laundry">🧺 Wastas</button>
+      </div>
+
+      <div class="schedule-pane active" id="schedule-training">
+        <article class="notice-card green"><span>🏃</span><div><strong>Vaste trainingen</strong><p>Iedere maandag en woensdag van 18:00 tot 19:00 uur.</p></div></article>
+        <div class="training-grid" id="training-grid"></div>
+      </div>
+
+      <div class="schedule-pane" id="schedule-driving">
+        <article class="notice-card"><span>🚗</span><div><strong>Auto-indeling bepalen jullie onderling</strong><p>Per uitwedstrijd zijn drie ouders ingepland. Kan iemand niet, regel dan onderling een vervanger.</p></div></article>
+        <div class="task-list" id="drive-list"></div>
+      </div>
+
+      <div class="schedule-pane" id="schedule-laundry">
+        <article class="notice-card"><span>🧺</span><div><strong>Wastasschema</strong><p>Na de wedstrijd neemt de ingeplande ouder de wastas mee.</p></div></article>
+        <div class="task-list" id="wash-list"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-absence">
+      <div class="page-head"><div><p class="eyebrow">Beschikbaarheid</p><h1>Afmelden</h1><p class="muted">Geef hier door wanneer een speelster niet kan trainen of spelen.</p></div></div>
+      <div class="absence-layout">
+        <article class="card form-card">
+          <form id="absence-form">
+            <div class="field"><label for="player-select">Speelster</label><select id="player-select" required></select></div>
+            <div class="field"><label for="event-select">Activiteit</label><select id="event-select" required></select></div>
+            <div class="field"><label for="reason-input">Reden <span>(optioneel)</span></label><textarea id="reason-input" rows="3" placeholder="Bijvoorbeeld ziek, verjaardag of vakantie"></textarea></div>
+            <button class="primary-button" type="submit">Afmelding doorgeven</button>
+            <p class="form-help" id="absence-help">De afmelding wordt direct gedeeld met de rest van het team zodra Supabase is gekoppeld.</p>
+          </form>
+        </article>
+        <article class="card panel">
+          <div class="panel-head"><div><p class="eyebrow">Actueel</p><h2>Afmeldingen</h2></div><span class="count-badge" id="absence-count">0</span></div>
+          <div class="absence-list" id="absence-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-team">
+      <div class="page-head"><div><p class="eyebrow">Selectie</p><h1>Team</h1><p class="muted">SVHA MO13-1 · 13 speelsters.</p></div></div>
+      <div class="team-grid" id="team-grid"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Hoofdnavigatie">
+    <button class="nav-item active" data-page="home"><span>🏠</span><small>Home</small></button>
+    <button class="nav-item" data-page="matches"><span>⚽</span><small>Wedstrijden</small></button>
+    <button class="nav-item" data-page="schedule"><span>📅</span><small>Schema</small></button>
+    <button class="nav-item absence-nav" data-page="absence"><span>❌</span><small>Afmelden</small></button>
+    <button class="nav-item" data-page="team"><span>👥</span><small>Team</small></button>
+  </nav>
+</div>
+
+<div class="modal-backdrop hidden" id="modal-backdrop"></div>
+<section class="modal hidden" id="account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
+  <div class="modal-head"><div><p class="eyebrow">Account</p><h2 id="account-title">Mijn account</h2></div><button class="close-button" data-close-modal aria-label="Sluiten">×</button></div>
+  <div id="account-content"></div>
+</section>
+
+<section class="modal hidden" id="install-modal" role="dialog" aria-modal="true" aria-labelledby="install-title">
+  <div class="modal-head"><div><p class="eyebrow">Installeren</p><h2 id="install-title">Teamapp op je telefoon</h2></div><button class="close-button" data-close-modal aria-label="Sluiten">×</button></div>
+  <div id="install-instructions" class="modal-copy"></div>
+</section>
+
+<section class="auth-screen hidden" id="auth-screen">
+  <div class="auth-card">
+    <img src="assets/svha-logo.png" alt="SVHA logo">
+    <p class="eyebrow">SVHA MO13-1</p>
+    <h1>Inloggen bij de teamapp</h1>
+    <p>Vul je e-mailadres in. Je ontvangt een veilige inloglink; een wachtwoord is niet nodig.</p>
+    <form id="login-form">
+      <div class="field"><label for="login-email">E-mailadres</label><input id="login-email" type="email" autocomplete="email" placeholder="ouder@email.nl" required></div>
+      <button class="primary-button" type="submit">Stuur inloglink</button>
+    </form>
+    <p class="auth-status" id="auth-status"></p>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js" defer></script>
+</body>
+</html>

@@ -40,7 +40,7 @@ const SEED_LAUNDRY=[
   ['m1','Norjan Daoud'],['m2','Lexi van de Ven'],['m3','Vajèn Velthuizen'],['m4','Milou Riedijk'],['m5','Willemijn Doelman']
 ].map((x,i)=>({id:`w${i+1}`,event_id:x[0],player_id:playerIdByName(x[1]),status:'scheduled'}));
 
-const state={players:[],events:[],driving:[],laundry:[],absences:[],user:null,profile:null,parentPlayerIds:[],adminUsers:[],online:false,mode:DB_ENABLED?'database':'demo'};
+const state={players:[],events:[],driving:[],laundry:[],absences:[],user:null,profile:null,parentPlayerIds:[],adminUsers:[],availabilityFilter:'all',online:false,mode:DB_ENABLED?'database':'demo'};
 let installPrompt=null;
 
 const fmtDate=new Intl.DateTimeFormat('nl-NL',{weekday:'long',day:'numeric',month:'long'});
@@ -165,12 +165,12 @@ async function submitAbsence(ev){
   const {data,error}=await sb.from('absences').insert({player_id:playerId,event_id:eventId,reason:reason||null,created_by:state.user.id}).select().single();if(error){console.error(error);toast('Afmelding opslaan mislukt');return}state.absences.unshift(data);saveRemoteCache();ev.target.reset();renderAbsences();renderDriving();renderLaundry();toast('Afmelding doorgegeven ✓');
 }
 async function deleteAbsence(id){const row=state.absences.find(a=>a.id===id);if(!row||!canManagePlayer(row.player_id))return;if(state.mode==='demo'){state.absences=state.absences.filter(a=>a.id!==id);setLocal(STORAGE.absences,state.absences);renderAbsences();renderDriving();renderLaundry();toast('Afmelding verwijderd');return}const {error}=await sb.from('absences').delete().eq('id',id);if(error){toast('Verwijderen mislukt');return}state.absences=state.absences.filter(a=>a.id!==id);saveRemoteCache();renderAbsences();renderDriving();renderLaundry();toast('Afmelding verwijderd')}
-function renderTeam(){$('#team-grid').innerHTML=state.players.map((p,i)=>`<article class="card player-card"><span class="player-avatar">${initials(p.name)}</span><div><strong>${esc(p.name)}</strong><small>Speelster · #${String(p.shirt_number||i+1).padStart(2,'0')}</small></div></article>`).join('')}
+function renderTeam(){const count=state.players.length;$('#team-grid').innerHTML=state.players.map((p,i)=>`<article class="card player-card"><span class="player-avatar">${initials(p.name)}</span><div><strong>${esc(p.name)}</strong><small>Speelster · #${String(p.shirt_number||i+1).padStart(2,'0')}</small></div></article>`).join('');const t=$('#team-count-text');if(t)t.textContent=`SVHA MO13-1 · ${count} speelster${count===1?'':'s'}.`}
 
 
 function renderCoachVisibility(){
   const btn=$('#admin-top');if(!btn)return;btn.classList.toggle('hidden',!isCoach());
-  if(isCoach()){$('#parent-player').innerHTML=playerOptions();$('#task-player').innerHTML=playerOptions();renderAdminMatchOptions();}
+  if(isCoach()){$('#parent-player').innerHTML=playerOptions();$('#task-player').innerHTML=playerOptions();renderAdminMatchOptions();renderAdminPlayers();setDefaultPlayerNumber();}
 }
 function playerOptions(selected=''){return '<option value="">Kies een speelster…</option>'+state.players.map(p=>`<option value="${p.id}" ${p.id===selected?'selected':''}>${esc(p.name)}</option>`).join('')}
 function matchOptions(selected=''){return '<option value="">Kies een wedstrijd…</option>'+matches().map(e=>`<option value="${e.id}" ${e.id===selected?'selected':''}>${fmtShort.format(dt(e.starts_at))} · ${eventTime(e)} — ${isHome(e)?'Thuis':'Uit'} tegen ${esc(opponent(e))}</option>`).join('')}
@@ -185,7 +185,71 @@ async function loadAdminUsers(){
   if(!isCoach())return;const list=$('#admin-parent-list');if(list)list.innerHTML='<div class="empty-state">Accounts laden…</div>';
   try{const data=await adminInvoke({action:'list_users'});state.adminUsers=data.users||[];renderAdminParents()}catch(err){console.error(err);if(list)list.innerHTML=`<div class="empty-state">${esc(err.message||'Accounts konden niet worden geladen')}</div>`}
 }
-function renderAdminData(){if(!isCoach())return;renderAdminParents();renderAdminMatches();renderAdminTasks();renderAdminMatchOptions()}
+function renderAdminData(){if(!isCoach())return;renderAdminAvailability();renderAdminPlayers();renderAdminParents();renderAdminMatches();renderAdminTasks();renderAdminMatchOptions()}
+
+function eventAbsences(eventId){return state.absences.filter(a=>a.event_id===eventId)}
+function eventExpectedPlayers(eventId){const absentIds=new Set(eventAbsences(eventId).map(a=>a.player_id));return state.players.filter(p=>!absentIds.has(p.id))}
+function taskStatusLabel(a){const st=assignmentStatus(a);if(st==='confirmed')return {label:'Bevestigd',cls:'ok'};if(st==='replacement_needed')return {label:'Kan niet / vervanging nodig',cls:'bad'};return {label:'Nog niet bevestigd',cls:'pending'}}
+function eventTaskRows(eventId,type){const source=type==='driving'?state.driving:state.laundry;return source.filter(a=>a.event_id===eventId)}
+function availabilityEventCard(e){
+  const absent=eventAbsences(e.id);
+  const expected=eventExpectedPlayers(e.id);
+  const isMatch=e.event_type==='match';
+  const driveRows=isMatch?eventTaskRows(e.id,'driving'):[];
+  const washRows=isMatch?eventTaskRows(e.id,'laundry'):[];
+  const problemTasks=[...driveRows,...washRows].filter(a=>assignmentStatus(a)==='replacement_needed').length;
+  const pendingTasks=[...driveRows,...washRows].filter(a=>assignmentStatus(a)==='scheduled').length;
+  const title=isMatch?`${isHome(e)?'Thuis':'Uit'} tegen ${esc(opponent(e))}`:'Training';
+  const absentHtml=absent.length?absent.map(a=>{const p=player(a.player_id);return `<div class="availability-person absent"><span class="availability-dot"></span><div><strong>${esc(p?.name||'Onbekend')}</strong><small>${a.reason?esc(a.reason):'Afgemeld'}</small></div></div>`}).join(''):'<div class="availability-empty ok">Niemand afgemeld ✓</div>';
+  const expectedHtml=expected.map(p=>`<span class="presence-chip">${esc(p.name)}</span>`).join('');
+  const taskSection=isMatch?`<div class="availability-tasks">
+    <div class="availability-task-group"><div class="availability-task-head"><strong>🚗 Rijden</strong><span>${driveRows.length} ingepland</span></div>${driveRows.length?driveRows.map(a=>{const p=player(a.player_id),st=taskStatusLabel(a);return `<div class="availability-task-row"><span>${esc(p?.name||'Onbekend')}</span><span class="task-state ${st.cls}">${st.label}</span></div>`}).join(''):'<div class="availability-empty">Geen rijders ingepland</div>'}</div>
+    <div class="availability-task-group"><div class="availability-task-head"><strong>🧺 Wastas</strong><span>${washRows.length} ingepland</span></div>${washRows.length?washRows.map(a=>{const p=player(a.player_id),st=taskStatusLabel(a);return `<div class="availability-task-row"><span>${esc(p?.name||'Onbekend')}</span><span class="task-state ${st.cls}">${st.label}</span></div>`}).join(''):'<div class="availability-empty">Geen wastas ingepland</div>'}</div>
+  </div>`:'';
+  return `<article class="card availability-card ${absent.length?'has-absence':''} ${problemTasks?'has-problem':''}">
+    <div class="availability-card-head"><div><div class="availability-kicker">${isMatch?'⚽ Wedstrijd':'🏃 Training'} · ${dateLabel(e.starts_at)} · ${eventTime(e)}</div><h3>${title}</h3><small>${esc(e.location_name||'Sportpark SVHA')}${e.address?` · ${esc(e.address)}`:''}</small></div><div class="availability-counts"><span class="availability-count ok"><strong>${expected.length}</strong> verwacht</span><span class="availability-count bad"><strong>${absent.length}</strong> afgemeld</span>${isMatch&&problemTasks?`<span class="availability-count bad"><strong>${problemTasks}</strong> taakprobleem</span>`:''}${isMatch&&pendingTasks?`<span class="availability-count pending"><strong>${pendingTasks}</strong> onbevestigd</span>`:''}</div></div>
+    <div class="availability-body"><div class="availability-block"><div class="availability-block-title"><strong>Niet aanwezig</strong><span>${absent.length}</span></div>${absentHtml}</div><details class="availability-details"><summary>Verwacht aanwezig (${expected.length})</summary><div class="presence-chips">${expectedHtml||'<span class="muted">Niemand</span>'}</div></details>${taskSection}</div>
+  </article>`;
+}
+function renderAdminAvailability(){
+  const el=$('#admin-availability-list');if(!el||!isCoach())return;
+  const now=new Date();
+  let rows=state.events.filter(e=>dt(e.starts_at)>=new Date(now.getTime()-6*60*60*1000)).sort((a,b)=>dt(a.starts_at)-dt(b.starts_at));
+  if(state.availabilityFilter!=='all')rows=rows.filter(e=>e.event_type===state.availabilityFilter);
+  rows=rows.slice(0,20);
+  const allUpcoming=state.events.filter(e=>dt(e.starts_at)>=new Date(now.getTime()-6*60*60*1000));
+  const nextEvents=allUpcoming.slice().sort((a,b)=>dt(a.starts_at)-dt(b.starts_at)).slice(0,20);
+  const absentCount=nextEvents.reduce((n,e)=>n+eventAbsences(e.id).length,0);
+  const taskRows=[...state.driving,...state.laundry].filter(a=>nextEvents.some(e=>e.id===a.event_id));
+  const cannotCount=taskRows.filter(a=>assignmentStatus(a)==='replacement_needed').length;
+  const unconfirmedCount=taskRows.filter(a=>assignmentStatus(a)==='scheduled').length;
+  const summary=$('#availability-summary');if(summary)summary.innerHTML=`<div class="availability-stat"><span>❌</span><div><strong>${absentCount}</strong><small>afmeldingen komende activiteiten</small></div></div><div class="availability-stat"><span>⚠️</span><div><strong>${cannotCount}</strong><small>rij-/wastaken kunnen niet</small></div></div><div class="availability-stat"><span>⏳</span><div><strong>${unconfirmedCount}</strong><small>taken nog niet bevestigd</small></div></div>`;
+  const updated=$('#availability-updated');if(updated)updated.textContent=`Bijgewerkt ${new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date())}`;
+  el.innerHTML=rows.map(availabilityEventCard).join('')||'<div class="empty-state">Geen komende activiteiten gevonden.</div>';
+}
+function setAvailabilityFilter(filter){state.availabilityFilter=filter;$$('[data-availability-filter]').forEach(b=>b.classList.toggle('active',b.dataset.availabilityFilter===filter));renderAdminAvailability()}
+
+function nextPlayerNumber(){const nums=state.players.map(p=>Number(p.shirt_number)||0);return Math.max(0,...nums)+1}
+function setDefaultPlayerNumber(){const input=$('#player-number');if(input&&!input.value)input.value=nextPlayerNumber()}
+function resetPlayerForm(){const f=$('#player-form');if(!f)return;f.reset();$('#player-id').value='';$('#player-save').textContent='Speelster opslaan';$('#player-cancel').classList.add('hidden');setDefaultPlayerNumber()}
+function renderAdminPlayers(){
+  const el=$('#admin-player-list');if(!el||!isCoach())return;const count=$('#player-count');if(count)count.textContent=state.players.length;
+  el.innerHTML=state.players.map((p,i)=>`<div class="admin-row"><div class="admin-row-main"><strong>${esc(p.name)}</strong><small>Nummer / volgnummer: ${esc(p.shirt_number||i+1)}</small></div><div class="admin-row-actions"><button class="small-action" data-edit-player="${p.id}">Wijzig</button></div></div>`).join('')||'<div class="empty-state">Nog geen speelsters.</div>';
+  $$('[data-edit-player]').forEach(b=>b.addEventListener('click',()=>editPlayer(b.dataset.editPlayer)));
+}
+function editPlayer(id){const p=player(id);if(!p)return;$('#player-id').value=p.id;$('#player-name').value=p.name||'';$('#player-number').value=p.shirt_number||'';$('#player-save').textContent='Wijzigingen opslaan';$('#player-cancel').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+async function savePlayer(ev){
+  ev.preventDefault();if(!isCoach())return;const id=$('#player-id').value,name=$('#player-name').value.trim(),shirt=Number($('#player-number').value);if(!name||!shirt)return;
+  const btn=$('#player-save');btn.disabled=true;
+  try{
+    const row={name,shirt_number:shirt,active:true};let res;
+    if(id)res=await sb.from('players').update(row).eq('id',id).select().single();else res=await sb.from('players').insert(row).select().single();
+    if(res.error)throw res.error;
+    toast(id?'Speelster bijgewerkt ✓':'Speelster toegevoegd ✓');resetPlayerForm();await loadRemote();renderAdminPlayers();$('#parent-player').innerHTML=playerOptions();$('#task-player').innerHTML=playerOptions();setAdminTab('players');
+  }catch(err){console.error(err);toast('Speelster opslaan mislukt')}
+  finally{btn.disabled=false}
+}
+
 function renderAdminParents(){
   const el=$('#admin-parent-list');if(!el||!isCoach())return;const parents=state.adminUsers.filter(u=>u.role!=='coach');$('#parent-count').textContent=parents.length;
   if(!state.adminUsers.length){el.innerHTML='<div class="empty-state">Klik op Vernieuwen om accounts te laden.</div>';return}
@@ -219,7 +283,7 @@ function renderAdminTasks(){
 }
 async function addTask(ev){ev.preventDefault();const eventId=$('#task-event').value,playerId=$('#task-player').value,type=$('#task-type').value;if(!eventId||!playerId)return;const table=type==='driving'?'transport_assignments':'laundry_assignments';const {error}=await sb.from(table).insert({event_id:eventId,player_id:playerId,status:'scheduled'});if(error){console.error(error);return toast(error.code==='23505'?'Deze taak bestaat al':'Taak toevoegen mislukt')}toast('Taak toegevoegd ✓');ev.currentTarget.reset();await loadRemote();setAdminTab('tasks')}
 async function deleteTask(key){const [type,id]=key.split(':');if(!confirm('Deze taak verwijderen?'))return;const table=type==='driving'?'transport_assignments':'laundry_assignments';const {error}=await sb.from(table).delete().eq('id',id);if(error)return toast('Taak verwijderen mislukt');toast('Taak verwijderd');await loadRemote();setAdminTab('tasks')}
-async function openAdmin(){if(!isCoach())return;navigate('admin');renderAdminData();await loadAdminUsers()}
+async function openAdmin(){if(!isCoach())return;navigate('admin');setAdminTab('availability');renderAdminData();await loadAdminUsers()}
 
 function navigate(page){$$('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));window.scrollTo({top:0,behavior:'smooth'})}
 function setSchedule(tab){$$('.segment').forEach(b=>b.classList.toggle('active',b.dataset.scheduleTab===tab));$$('.schedule-pane').forEach(p=>p.classList.toggle('active',p.id===`schedule-${tab}`))}
@@ -311,7 +375,7 @@ function updateInstallVisibility(){const installed=matchMedia('(display-mode: st
 
 function bind(){
   $$('[data-page]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));$$('[data-jump]').forEach(b=>b.addEventListener('click',()=>{navigate(b.dataset.jump);if(b.dataset.schedule)setSchedule(b.dataset.schedule)}));$$('[data-schedule-tab]').forEach(b=>b.addEventListener('click',()=>setSchedule(b.dataset.scheduleTab)));
-  $('#absence-form').addEventListener('submit',submitAbsence);$('#account-button').addEventListener('click',()=>{renderAccount();openModal('#account-modal')});$('#install-button').addEventListener('click',installHelp);$('#install-top').addEventListener('click',installHelp);$('#admin-top')?.addEventListener('click',openAdmin);$('#admin-refresh')?.addEventListener('click',async()=>{await loadRemote();await loadAdminUsers();toast('Beheer bijgewerkt ✓')});$$('[data-admin-tab]').forEach(b=>b.addEventListener('click',()=>setAdminTab(b.dataset.adminTab)));$('#create-parent-form')?.addEventListener('submit',createParentAccount);$('#generate-password')?.addEventListener('click',generatePassword);$('#match-form')?.addEventListener('submit',saveMatch);$('#match-cancel')?.addEventListener('click',resetMatchForm);$('#task-form')?.addEventListener('submit',addTask);$('#modal-backdrop').addEventListener('click',closeModals);$$('[data-close-modal]').forEach(b=>b.addEventListener('click',closeModals));
+  $('#absence-form').addEventListener('submit',submitAbsence);$('#account-button').addEventListener('click',()=>{renderAccount();openModal('#account-modal')});$('#install-button').addEventListener('click',installHelp);$('#install-top').addEventListener('click',installHelp);$('#admin-top')?.addEventListener('click',openAdmin);$('#admin-refresh')?.addEventListener('click',async()=>{await loadRemote();await loadAdminUsers();renderAdminAvailability();toast('Beheer bijgewerkt ✓')});$$('[data-admin-tab]').forEach(b=>b.addEventListener('click',()=>setAdminTab(b.dataset.adminTab)));$$('[data-availability-filter]').forEach(b=>b.addEventListener('click',()=>setAvailabilityFilter(b.dataset.availabilityFilter)));$('#player-form')?.addEventListener('submit',savePlayer);$('#player-cancel')?.addEventListener('click',resetPlayerForm);$('#create-parent-form')?.addEventListener('submit',createParentAccount);$('#generate-password')?.addEventListener('click',generatePassword);$('#match-form')?.addEventListener('submit',saveMatch);$('#match-cancel')?.addEventListener('click',resetMatchForm);$('#task-form')?.addEventListener('submit',addTask);$('#modal-backdrop').addEventListener('click',closeModals);$$('[data-close-modal]').forEach(b=>b.addEventListener('click',closeModals));
   if(DB_ENABLED)$('#login-form').addEventListener('submit',login);
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;updateInstallVisibility()});window.addEventListener('appinstalled',()=>{installPrompt=null;updateInstallVisibility();toast('Teamapp geïnstalleerd ✓')});
   window.addEventListener('online',()=>{if(DB_ENABLED&&state.user)loadRemote()});window.addEventListener('offline',()=>{state.online=false;renderSync()});

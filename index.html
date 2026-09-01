@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=10.1">
+  <link rel="stylesheet" href="styles.css?v=10.2">
   <title>SVHA MO13-1 Teamapp</title>
 </head>
 <body>
@@ -135,14 +135,50 @@
 
 
     <section class="page" id="page-admin">
-      <div class="page-head admin-head"><div><p class="eyebrow">Trainer / beheerder</p><h1>Team beheren</h1><p class="muted">Ouders, wedstrijden en taken direct vanuit de app beheren.</p></div><button class="secondary-button" id="admin-refresh" type="button">↻ Vernieuwen</button></div>
+      <div class="page-head admin-head"><div><p class="eyebrow">Trainer / beheerder</p><h1>Team beheren</h1><p class="muted">Aanwezigheid, speelsters, ouders, wedstrijden en taken direct vanuit de app beheren.</p></div><button class="secondary-button" id="admin-refresh" type="button">↻ Vernieuwen</button></div>
       <div class="admin-segments" role="tablist">
-        <button class="admin-segment active" data-admin-tab="parents">👤 Ouders</button>
+        <button class="admin-segment active" data-admin-tab="availability">✅ Aanwezigheid</button>
+        <button class="admin-segment" data-admin-tab="players">👥 Speelsters</button>
+        <button class="admin-segment" data-admin-tab="parents">👤 Ouders</button>
         <button class="admin-segment" data-admin-tab="matches">⚽ Wedstrijden</button>
         <button class="admin-segment" data-admin-tab="tasks">🚗 Taken</button>
       </div>
 
-      <div class="admin-pane active" id="admin-parents">
+      <div class="admin-pane active" id="admin-availability">
+        <article class="notice-card availability-note"><span>ℹ️</span><div><strong>Groen = verwacht aanwezig</strong><p>Ouders hoeven alleen af te melden. Een speelster zonder afmelding staat daarom als verwacht aanwezig. Bij rij- en wastaken zie je apart of de ouder heeft bevestigd of niet kan.</p></div></article>
+        <div class="availability-toolbar">
+          <div class="availability-filters" role="group" aria-label="Activiteiten filteren">
+            <button class="availability-filter active" type="button" data-availability-filter="all">Alles</button>
+            <button class="availability-filter" type="button" data-availability-filter="match">⚽ Wedstrijden</button>
+            <button class="availability-filter" type="button" data-availability-filter="training">🏃 Trainingen</button>
+          </div>
+          <span class="muted availability-updated" id="availability-updated"></span>
+        </div>
+        <div class="availability-summary" id="availability-summary"></div>
+        <div class="availability-list" id="admin-availability-list"></div>
+      </div>
+
+
+      <div class="admin-pane" id="admin-players">
+        <div class="admin-grid">
+          <article class="card form-card">
+            <p class="eyebrow">Selectie</p><h2>Speelster toevoegen</h2>
+            <form id="player-form">
+              <input type="hidden" id="player-id">
+              <div class="field"><label>Naam speelster</label><input id="player-name" placeholder="Voor- en achternaam" required></div>
+              <div class="field"><label>Nummer / volgnummer</label><input id="player-number" type="number" min="1" max="99" placeholder="14" required></div>
+              <div class="form-actions"><button class="primary-button" type="submit" id="player-save">Speelster opslaan</button><button class="secondary-button hidden" type="button" id="player-cancel">Annuleren</button></div>
+              <p class="form-help">Na opslaan verschijnt de speelster direct in het team en kun je een ouder aan haar koppelen.</p>
+            </form>
+          </article>
+          <article class="card panel">
+            <div class="panel-head"><div><p class="eyebrow">Team</p><h2>Speelsters beheren</h2></div><span class="count-badge" id="player-count">0</span></div>
+            <div id="admin-player-list" class="admin-list"></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="admin-pane" id="admin-parents">
         <div class="admin-grid">
           <article class="card form-card">
             <p class="eyebrow">Nieuw account</p><h2>Ouder toevoegen</h2>
@@ -205,7 +241,7 @@
     </section>
 
     <section class="page" id="page-team">
-      <div class="page-head"><div><p class="eyebrow">Selectie</p><h1>Team</h1><p class="muted">SVHA MO13-1 · 13 speelsters.</p></div></div>
+      <div class="page-head"><div><p class="eyebrow">Selectie</p><h1>Team</h1><p class="muted" id="team-count-text">SVHA MO13-1 · 13 speelsters.</p></div></div>
       <div class="team-grid" id="team-grid"></div>
     </section>
   </main>
@@ -247,8 +283,8 @@
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=10.1"></script>
+<script src="config.js?v=10.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=10.1" defer></script>
+<script src="app.js?v=10.3" defer></script>
 </body>
 </html>

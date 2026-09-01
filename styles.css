@@ -40,3 +40,6 @@ button,input,select,textarea{font:inherit}.hidden{display:none!important}button{
 .admin-segments{grid-template-columns:repeat(5,1fr)}
 @media(max-width:980px) and (min-width:761px){.admin-segments{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.admin-segments{grid-template-columns:repeat(2,1fr);position:static}}
+
+/* v10.4 */
+.locked-player{background:#eef5f1!important;color:#375346;font-weight:800;cursor:not-allowed}.bulk-parent-box{display:grid;gap:10px}.bulk-parent-box>p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.bulk-credentials{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f2f7f4;border:1px solid var(--line);border-radius:12px;padding:11px 12px}.bulk-credentials code{font-size:13px;font-weight:900;color:var(--green-900);background:#fff;border:1px solid #d8e5dd;border-radius:8px;padding:5px 8px}.admin-divider{border:0;border-top:1px solid var(--line);margin:22px 0}

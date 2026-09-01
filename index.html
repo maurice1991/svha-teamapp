@@ -119,7 +119,7 @@
       <div class="absence-layout">
         <article class="card form-card">
           <form id="absence-form">
-            <div class="field"><label for="player-select">Speelster</label><select id="player-select" required></select></div>
+            <div class="field"><label for="player-input">Speelster</label><input id="player-input" list="player-datalist" autocomplete="off" placeholder="Typ de naam van de speelster" required><datalist id="player-datalist"></datalist><input id="player-id" type="hidden"></div>
             <div class="field"><label for="event-select">Activiteit</label><select id="event-select" required></select></div>
             <div class="field"><label for="reason-input">Reden <span>(optioneel)</span></label><textarea id="reason-input" rows="3" placeholder="Bijvoorbeeld ziek, verjaardag of vakantie"></textarea></div>
             <button class="primary-button" type="submit">Afmelding doorgeven</button>
@@ -181,7 +181,16 @@
       <div class="admin-pane" id="admin-parents">
         <div class="admin-grid">
           <article class="card form-card">
-            <p class="eyebrow">Nieuw account</p><h2>Ouder toevoegen</h2>
+            <p class="eyebrow">Standaard accounts</p><h2>Ouderaccounts klaarzetten</h2>
+            <div class="bulk-parent-box">
+              <p>Maak in één keer de 13 vaste ouderaccounts aan en koppel ze automatisch aan de juiste speelster.</p>
+              <div class="bulk-credentials"><strong>Tijdelijk wachtwoord</strong><code>MO13team!</code></div>
+              <button class="primary-button" id="seed-parent-accounts" type="button">13 ouderaccounts aanmaken</button>
+              <button class="secondary-button" id="copy-parent-logins" type="button">Inloglijst kopiëren</button>
+              <p class="form-help" id="seed-parent-status">De @mo13.nl-adressen zijn alleen gebruikersnamen; er wordt geen e-mail verstuurd.</p>
+            </div>
+            <hr class="admin-divider">
+            <p class="eyebrow">Los account</p><h2>Ouder toevoegen</h2>
             <form id="create-parent-form">
               <div class="field"><label>Naam ouder</label><input id="parent-name" placeholder="Bijv. moeder van Lexi"></div>
               <div class="field"><label>E-mailadres</label><input id="parent-email" type="email" placeholder="ouder@email.nl" required></div>
@@ -283,8 +292,8 @@
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=10.3"></script>
+<script src="config.js?v=10.4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=10.3" defer></script>
+<script src="app.js?v=10.4" defer></script>
 </body>
 </html>

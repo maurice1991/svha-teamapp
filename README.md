@@ -30,3 +30,7 @@ Vercel deployt daarna automatisch.
 ## Belangrijk
 
 Zet nooit een Supabase `service_role` of secret key in deze frontend. Alleen de publishable key hoort in `config.js`.
+
+
+## v9.1 fix
+Na een succesvolle e-mail/wachtwoord-login wordt het inlogscherm nu direct gesloten en de teamdata geladen. De auth listener wordt nu ook geregistreerd voordat er een bestaande sessie is.

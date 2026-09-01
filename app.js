@@ -78,13 +78,27 @@ function loadDemo(){
 }
 
 async function initDatabase(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){showAuth(); return;}
-  state.user=session.user; hideAuth(); await loadRemote();
+  // Register the auth listener first. In v9.0 this listener was only
+  // registered when a session already existed, so a fresh login could
+  // succeed while the login screen stayed visible.
   sb.auth.onAuthStateChange(async (_event,sessionNow)=>{
-    if(!sessionNow){state.user=null;showAuth();return}
-    state.user=sessionNow.user;hideAuth();await loadRemote();
+    if(!sessionNow){
+      state.user=null;
+      state.profile=null;
+      state.parentPlayerIds=[];
+      showAuth();
+      return;
+    }
+    state.user=sessionNow.user;
+    hideAuth();
+    await loadRemote();
   });
+
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){showAuth();return;}
+  state.user=session.user;
+  hideAuth();
+  await loadRemote();
 }
 async function loadRemote(){
   try{
@@ -189,7 +203,17 @@ async function login(ev){
     return;
   }
 
-  status.textContent='Ingelogd ✓';
+  // signInWithPassword succeeded. Do not wait for a page refresh:
+  // immediately switch to the app and load the permissions/data.
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    state.user=session.user;
+    status.textContent='Ingelogd ✓';
+    hideAuth();
+    await loadRemote();
+  }else{
+    status.textContent='Inloggen gelukt, sessie wordt geladen…';
+  }
   if(button){button.disabled=false;button.textContent='Inloggen'}
 }
 function installHelp(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;if(standalone){toast('De app is al geïnstalleerd');return}if(installPrompt){installPrompt.prompt();installPrompt.userChoice.finally(()=>{installPrompt=null;updateInstallVisibility()});return}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);$('#install-instructions').innerHTML=ios?'<p><strong>Op iPhone/iPad:</strong></p><p>1. Open deze pagina in Safari.<br>2. Tik onderaan op het deel-icoon <strong>□↑</strong>.<br>3. Kies <strong>Zet op beginscherm</strong>.<br>4. Tik op <strong>Voeg toe</strong>.</p>':'<p><strong>Installeren:</strong></p><p>Open het browsermenu en kies <strong>App installeren</strong> of <strong>Toevoegen aan startscherm</strong>. De app moet hiervoor via HTTPS worden geopend, bijvoorbeeld via Vercel.</p>';openModal('#install-modal')}

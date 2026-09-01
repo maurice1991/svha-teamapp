@@ -63,3 +63,11 @@ python -m http.server 8000
 ```
 
 Open daarna `http://localhost:8000`.
+
+
+## v8.1 login-diagnose
+De login toont nu de echte Supabase-foutmelding en blokkeert een nieuwe magic-link aanvraag 60 seconden na een succesvolle aanvraag. Dit voorkomt onduidelijke meldingen bij de standaard Supabase rate limit.
+
+
+## v8.2
+Deze versie forceert verse JS/CSS-bestanden op Vercel/PWA, gebruikt een nieuwe service-worker cache en toont de 60-seconden teller ook wanneer Supabase een rate-limit teruggeeft.

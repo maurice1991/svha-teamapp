@@ -1,6 +1,6 @@
-const CACHE = 'svha-teamapp-v8';
+const CACHE = 'svha-teamapp-v8.2';
 const APP_SHELL = [
-  './', './index.html', './styles.css', './app.js', './config.js', './manifest.webmanifest',
+  './', './index.html', './styles.css?v=8.2', './app.js?v=8.2', './config.js?v=8.2', './manifest.webmanifest',
   './assets/svha-logo.png', './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png'
 ];
 self.addEventListener('install', event => {
@@ -15,6 +15,13 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).then(r => { const c=r.clone(); caches.open(CACHE).then(cache=>cache.put('./index.html',c)); return r; }).catch(() => caches.match('./index.html')));
+    return;
+  }
+  const isFreshAsset = /\.(?:js|css)$/.test(url.pathname) || url.pathname.endsWith('/config.js');
+  if (isFreshAsset) {
+    event.respondWith(fetch(event.request).then(response => {
+      const copy=response.clone(); caches.open(CACHE).then(cache=>cache.put(event.request,copy)); return response;
+    }).catch(() => caches.match(event.request)));
     return;
   }
   event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => { const copy=response.clone(); caches.open(CACHE).then(cache=>cache.put(event.request,copy)); return response; })));

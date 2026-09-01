@@ -162,6 +162,20 @@ function renderAccount(){
   const linked=state.parentPlayerIds.map(id=>player(id)?.name).filter(Boolean).join(', ')||'Nog niet gekoppeld';el.innerHTML=`<div class="account-box"><div class="account-line"><small>Ingelogd als</small><strong>${esc(state.user?.email||'')}</strong></div><div class="account-line"><small>Rol</small><strong>${state.profile?.role==='coach'?'Trainer / beheerder':'Ouder'}</strong></div><div class="account-line"><small>Gekoppelde speelster(s)</small><strong>${esc(linked)}</strong></div><button class="secondary-button" id="logout-button">Uitloggen</button></div>`;$('#logout-button')?.addEventListener('click',async()=>{await sb.auth.signOut();closeModals()});
 }
 function showAuth(){$('#auth-screen').classList.remove('hidden')}function hideAuth(){$('#auth-screen').classList.add('hidden')}
+function startLoginCooldown(button,seconds=60){
+  if(!button)return;
+  clearInterval(button._cooldownTimer);
+  button.disabled=true;
+  let left=seconds;
+  button.textContent=`Opnieuw over ${left}s`;
+  button._cooldownTimer=setInterval(()=>{
+    left-=1;
+    if(left<=0){
+      clearInterval(button._cooldownTimer);button._cooldownTimer=null;
+      button.disabled=false;button.textContent='Stuur inloglink';
+    }else button.textContent=`Opnieuw over ${left}s`;
+  },1000);
+}
 async function login(ev){
   ev.preventDefault();
   const email=$('#login-email').value.trim();
@@ -179,29 +193,17 @@ async function login(ev){
     console.error('Supabase login error:',error);
     const message=String(error.message||'Onbekende fout');
     if(error.status===429||/rate.?limit|60 seconds|security purposes/i.test(message)){
-      status.textContent='Je hebt net al een inloglink aangevraagd. Wacht ongeveer 60 seconden en probeer opnieuw.';
+      status.textContent='Je hebt net al een inloglink aangevraagd. Probeer het opnieuw zodra de teller op 0 staat.';
+      startLoginCooldown(button,60);
     }else{
       status.textContent='Inloglink versturen mislukt: '+message;
+      if(button){button.disabled=false;button.textContent='Stuur inloglink'}
     }
-    if(button){button.disabled=false;button.textContent='Stuur inloglink'}
     return;
   }
 
   status.textContent='Check je mailbox. De inloglink is verstuurd ✓';
-  let seconds=60;
-  if(button){
-    button.textContent=`Opnieuw over ${seconds}s`;
-    const timer=setInterval(()=>{
-      seconds-=1;
-      if(seconds<=0){
-        clearInterval(timer);
-        button.disabled=false;
-        button.textContent='Stuur inloglink';
-      }else{
-        button.textContent=`Opnieuw over ${seconds}s`;
-      }
-    },1000);
-  }
+  startLoginCooldown(button,60);
 }
 function installHelp(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;if(standalone){toast('De app is al geïnstalleerd');return}if(installPrompt){installPrompt.prompt();installPrompt.userChoice.finally(()=>{installPrompt=null;updateInstallVisibility()});return}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);$('#install-instructions').innerHTML=ios?'<p><strong>Op iPhone/iPad:</strong></p><p>1. Open deze pagina in Safari.<br>2. Tik onderaan op het deel-icoon <strong>□↑</strong>.<br>3. Kies <strong>Zet op beginscherm</strong>.<br>4. Tik op <strong>Voeg toe</strong>.</p>':'<p><strong>Installeren:</strong></p><p>Open het browsermenu en kies <strong>App installeren</strong> of <strong>Toevoegen aan startscherm</strong>. De app moet hiervoor via HTTPS worden geopend, bijvoorbeeld via Vercel.</p>';openModal('#install-modal')}
 function updateInstallVisibility(){const installed=matchMedia('(display-mode: standalone)').matches||navigator.standalone;if(installed){$('#install-card')?.classList.add('hidden');$('#install-top')?.classList.add('hidden')}}

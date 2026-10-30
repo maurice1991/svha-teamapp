@@ -121,7 +121,23 @@ async function loadRemote(){
 function renderAll(){renderSync();renderDashboard();renderMatches();renderTraining();renderDriving();renderLaundry();renderAbsenceForm();renderAbsences();renderTeam();renderAccount();renderCoachVisibility();if(isCoach())renderAdminData()}
 function renderSync(){const b=$('#sync-badge'),t=$('#sync-text');b.classList.remove('online','offline','demo');if(state.mode==='demo'){b.classList.add('demo');t.textContent='Demo'}else if(state.online){b.classList.add('online');t.textContent='Online'}else{b.classList.add('offline');t.textContent='Offline'}}
 function renderDashboard(){
-  const next=upcomingEvents()[0];if(next){$('#next-icon').textContent=next.event_type==='match'?'⚽':'🏃';$('#next-title').textContent=next.event_type==='match'?`${isHome(next)?'Thuis':'Uit'} tegen ${opponent(next)}`:'Training';$('#next-date').textContent=`${dateLabel(next.starts_at)} · ${eventTime(next)}`;$('#next-meta').textContent=next.event_type==='match'?(next.location_name||'Wedstrijd'): `${next.location_name||'Sportpark SVHA'} · tot ${eventEnd(next)}`;$('#next-action').dataset.jump=next.event_type==='match'?'matches':'schedule';}
+  const next=upcomingEvents()[0];
+  if(next){
+    $('#next-icon').textContent=next.event_type==='match'?'⚽':'🏃';
+    $('#next-title').textContent=next.event_type==='match'?`${isHome(next)?'Thuis':'Uit'} tegen ${opponent(next)}`:'Training';
+    $('#next-date').textContent=`${dateLabel(next.starts_at)} · ${eventTime(next)}`;
+    $('#next-meta').textContent=next.event_type==='match'?(next.location_name||'Wedstrijd'): `${next.location_name||'Sportpark SVHA'} · tot ${eventEnd(next)}`;
+    $('#next-action').dataset.jump=next.event_type==='match'?'matches':'schedule';
+
+    const absentIds=new Set(eventAbsences(next.id).map(a=>a.player_id));
+    const activePlayers=state.players.filter(p=>p.active!==false);
+    const absentCount=activePlayers.filter(p=>absentIds.has(p.id)).length;
+    const availableCount=Math.max(0,activePlayers.length-absentCount);
+    const attendance=$('#next-attendance');
+    if(attendance){
+      attendance.innerHTML=`<span class="attendance-available">👥 <strong>${availableCount} van ${activePlayers.length}</strong> beschikbaar</span>${absentCount?`<span class="attendance-absent">${absentCount} afgemeld</span>`:'<span class="attendance-complete">Iedereen beschikbaar</span>'}`;
+    }
+  }
   $('#my-drive-count').textContent=state.driving.filter(a=>canManagePlayer(a.player_id)).length;$('#my-wash-count').textContent=state.laundry.filter(a=>canManagePlayer(a.player_id)).length;
   $('#upcoming-list').innerHTML=upcomingEvents().slice(0,6).map(e=>`<div class="activity-row"><div class="date-box"><div><strong>${dt(e.starts_at).getDate()}</strong><small>${fmtDay.format(dt(e.starts_at))}</small></div></div><div class="activity-copy"><strong>${e.event_type==='match'?`${isHome(e)?'Thuis':'Uit'} tegen ${esc(opponent(e))}`:'Training'}</strong><small>${dateLabel(e.starts_at)} · ${eventTime(e)}${e.event_type==='training'?`–${eventEnd(e)}`:''}</small></div><span class="pill ${e.event_type==='match'?'match':''}">${e.event_type==='match'?'Wedstrijd':'Training'}</span></div>`).join('')||'<div class="empty-state">Geen activiteiten gevonden.</div>';
 }
@@ -171,10 +187,10 @@ function renderAbsences(){
 }
 async function submitAbsence(ev){
   ev.preventDefault();const matched=syncAbsencePlayerId(),playerId=matched?.id||'',eventId=$('#event-select').value,reason=$('#reason-input').value.trim();if(!playerId)return toast('Kies een geldige speelster uit de lijst');if(!eventId)return toast('Kies een activiteit');if(!canManagePlayer(playerId))return toast('Deze speelster is niet aan je account gekoppeld');
-  if(state.mode==='demo'){state.absences.unshift({id:`local-${Date.now()}`,player_id:playerId,event_id:eventId,reason,created_at:new Date().toISOString()});setLocal(STORAGE.absences,state.absences);ev.target.reset();renderAbsenceForm();renderAbsences();renderDriving();renderLaundry();toast('Afmelding opgeslagen ✓');return}
-  const {data,error}=await sb.from('absences').insert({player_id:playerId,event_id:eventId,reason:reason||null,created_by:state.user.id}).select().single();if(error){console.error(error);toast('Afmelding opslaan mislukt');return}state.absences.unshift(data);saveRemoteCache();ev.target.reset();renderAbsenceForm();renderAbsences();renderDriving();renderLaundry();toast('Afmelding doorgegeven ✓');
+  if(state.mode==='demo'){state.absences.unshift({id:`local-${Date.now()}`,player_id:playerId,event_id:eventId,reason,created_at:new Date().toISOString()});setLocal(STORAGE.absences,state.absences);ev.target.reset();renderAbsenceForm();renderAbsences();renderDashboard();renderDriving();renderLaundry();toast('Afmelding opgeslagen ✓');return}
+  const {data,error}=await sb.from('absences').insert({player_id:playerId,event_id:eventId,reason:reason||null,created_by:state.user.id}).select().single();if(error){console.error(error);toast('Afmelding opslaan mislukt');return}state.absences.unshift(data);saveRemoteCache();ev.target.reset();renderAbsenceForm();renderAbsences();renderDashboard();renderDriving();renderLaundry();toast('Afmelding doorgegeven ✓');
 }
-async function deleteAbsence(id){const row=state.absences.find(a=>a.id===id);if(!row||!canManagePlayer(row.player_id))return;if(state.mode==='demo'){state.absences=state.absences.filter(a=>a.id!==id);setLocal(STORAGE.absences,state.absences);renderAbsences();renderDriving();renderLaundry();toast('Afmelding verwijderd');return}const {error}=await sb.from('absences').delete().eq('id',id);if(error){toast('Verwijderen mislukt');return}state.absences=state.absences.filter(a=>a.id!==id);saveRemoteCache();renderAbsences();renderDriving();renderLaundry();toast('Afmelding verwijderd')}
+async function deleteAbsence(id){const row=state.absences.find(a=>a.id===id);if(!row||!canManagePlayer(row.player_id))return;if(state.mode==='demo'){state.absences=state.absences.filter(a=>a.id!==id);setLocal(STORAGE.absences,state.absences);renderAbsences();renderDashboard();renderDriving();renderLaundry();toast('Afmelding verwijderd');return}const {error}=await sb.from('absences').delete().eq('id',id);if(error){toast('Verwijderen mislukt');return}state.absences=state.absences.filter(a=>a.id!==id);saveRemoteCache();renderAbsences();renderDashboard();renderDriving();renderLaundry();toast('Afmelding verwijderd')}
 function renderTeam(){const count=state.players.length;$('#team-grid').innerHTML=state.players.map((p,i)=>`<article class="card player-card"><span class="player-avatar">${initials(p.name)}</span><div><strong>${esc(p.name)}</strong><small>Speelster · #${String(p.shirt_number||i+1).padStart(2,'0')}</small></div></article>`).join('');const t=$('#team-count-text');if(t)t.textContent=`SVHA MO13-1 · ${count} speelster${count===1?'':'s'}.`}
 
 

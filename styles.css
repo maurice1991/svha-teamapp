@@ -102,3 +102,13 @@ button,input,select,textarea{font:inherit}.hidden{display:none!important}button{
 .desktop-nav .nav-item.selected .nav-icon,
 .desktop-nav .nav-item.active .nav-icon{color:var(--green-700)}
 @media(max-width:680px){.desktop-nav{display:none}}
+
+
+/* v10.8: beschikbaarheid bij volgende activiteit */
+.next-attendance{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}
+.next-attendance span{display:inline-flex;align-items:center;gap:4px;padding:6px 9px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.2}
+.attendance-available{background:var(--green-100);color:var(--green-900)}
+.attendance-absent{background:#fff0f0;color:#a43d3d}
+.attendance-complete{background:#edf7f1;color:#28714d}
+.next-attendance strong{font-size:inherit;letter-spacing:0}
+@media(max-width:680px){.next-attendance{margin-top:8px}.next-attendance span{padding:5px 8px;font-size:9px}}

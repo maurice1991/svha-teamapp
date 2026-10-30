@@ -1,3 +1,11 @@
+# SVHA Teamapp v10.8
+
+Nieuw in v10.8:
+- Bij **Volgende activiteit** staat nu automatisch hoeveel speelsters beschikbaar zijn.
+- Afmeldingen voor de betreffende training of wedstrijd worden direct van het teamtotaal afgetrokken.
+- De kaart toont ook hoeveel speelsters zijn afgemeld of dat iedereen beschikbaar is.
+- Na toevoegen/verwijderen van een afmelding wordt het dashboard direct bijgewerkt.
+
 SVHA Teamapp v10.6
 
 Nieuw in v10.6:

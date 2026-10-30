@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=10.7">
+  <link rel="stylesheet" href="styles.css?v=10.8">
   <title>SVHA MO13-1 Teamapp</title>
 </head>
 <body>
@@ -73,7 +73,12 @@
           <div class="card-label"><span>Volgende activiteit</span><span class="live-pill">Komend</span></div>
           <div class="next-content">
             <div class="big-icon" id="next-icon">⚽</div>
-            <div class="next-copy"><h2 id="next-title">Laden…</h2><p id="next-date"></p><small id="next-meta"></small></div>
+            <div class="next-copy">
+              <h2 id="next-title">Laden…</h2>
+              <p id="next-date"></p>
+              <small id="next-meta"></small>
+              <div class="next-attendance" id="next-attendance" aria-live="polite"></div>
+            </div>
           </div>
           <button class="primary-button compact" data-jump="matches" id="next-action">Bekijk details</button>
         </article>
@@ -319,8 +324,8 @@
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.js?v=10.7"></script>
+<script src="config.js?v=10.8"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=10.7" defer></script>
+<script src="app.js?v=10.8" defer></script>
 </body>
 </html>

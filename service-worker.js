@@ -1,6 +1,6 @@
-const CACHE = 'svha-teamapp-v10-7';
+const CACHE = 'svha-teamapp-v10-8';
 const APP_SHELL = [
-  './', './index.html', './styles.css?v=10.7', './app.js?v=10.7', './config.js?v=10.7', './manifest.webmanifest',
+  './', './index.html', './styles.css?v=10.8', './app.js?v=10.8', './config.js?v=10.8', './manifest.webmanifest',
   './assets/svha-logo.png', './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png'
 ];
 self.addEventListener('install', event => {

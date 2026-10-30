@@ -1,6 +1,9 @@
-# SVHA Teamapp v10.8
+# SVHA Teamapp v10.9
 
-Nieuw in v10.8:
+Nieuw in v10.9:
+- Extra verticale ruimte tussen de beschikbaarheids-tags en de knop “Bekijk details”.
+
+Eerder toegevoegd in v10.8:
 - Bij **Volgende activiteit** staat nu automatisch hoeveel speelsters beschikbaar zijn.
 - Afmeldingen voor de betreffende training of wedstrijd worden direct van het teamtotaal afgetrokken.
 - De kaart toont ook hoeveel speelsters zijn afgemeld of dat iedereen beschikbaar is.
